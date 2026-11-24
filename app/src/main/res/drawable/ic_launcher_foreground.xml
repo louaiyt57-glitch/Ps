@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- شعر -->
+    <path android:fillColor="#FF1B1B22" android:pathData="M34,24h40v12h-40z" />
+    <path android:fillColor="#FF1B1B22" android:pathData="M30,32h6v14h-6z" />
+    <path android:fillColor="#FF1B1B22" android:pathData="M72,32h6v14h-6z" />
+    <!-- وجه -->
+    <path android:fillColor="#FFE8B48E" android:pathData="M36,36h36v22h-36z" />
+    <!-- نظارات -->
+    <path android:fillColor="#FF111111" android:pathData="M38,42h12v8h-12z" />
+    <path android:fillColor="#FF111111" android:pathData="M58,42h12v8h-12z" />
+    <path android:fillColor="#FFFFFFFF" android:pathData="M40,44h8v4h-8z" />
+    <path android:fillColor="#FFFFFFFF" android:pathData="M60,44h8v4h-8z" />
+    <!-- وشاح -->
+    <path android:fillColor="#FFC62828" android:pathData="M34,58h40v8h-40z" />
+    <path android:fillColor="#FFC62828" android:pathData="M60,66h8v10h-8z" />
+    <!-- معطف -->
+    <path android:fillColor="#FF7A4A2B" android:pathData="M32,66h28v24h-28z" />
+    <path android:fillColor="#FF7A4A2B" android:pathData="M68,66h8v24h-8z" />
+    <path android:fillColor="#FF5C3519" android:pathData="M44,66h2v24h-2z" />
+</vector>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg_dark">#FF12232A</color>
+    <color name="card">#FF1D3640</color>
+    <color name="text_main">#FFF2F7F8</color>
+    <color name="text_sub">#FF9DB8BF</color>
+    <color name="accent">#FF4FD1C5</color>
+    <color name="ok_green">#FF7BE08A</color>
+    <color name="bad_red">#FFFF7B7B</color>
+    <color name="icon_bg">#FF2E8B88</color>
+
+    <!-- ألوان الشخصية (للاستخدام في الرسم) -->
+    <color name="pet_hair">#FF1B1B22</color>
+    <color name="pet_skin">#FFE8B48E</color>
+    <color name="pet_scarf">#FFC62828</color>
+    <color name="pet_coat">#FF7A4A2B</color>
+    <color name="pet_coat_dark">#FF5C3519</color>
+    <color name="pet_glasses">#FF111111</color>
+</resources>

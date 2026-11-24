@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">بيكسل بت</string>
+
+    <string name="perm_title">إذن الظهور فوق التطبيقات</string>
+    <string name="perm_granted">✔ الإذن ممنوح</string>
+    <string name="perm_missing">✖ الإذن غير ممنوح</string>
+    <string name="perm_button">فتح إعدادات الإذن</string>
+
+    <string name="btn_start">تشغيل الشخصية</string>
+    <string name="btn_stop">إيقاف الشخصية</string>
+    <string name="status_running">الشخصية تعمل الآن</string>
+    <string name="status_stopped">الشخصية متوقفة</string>
+
+    <string name="auto_move">الحركة التلقائية العشوائية</string>
+    <string name="speed_title">سرعة التبديل بين الحركات</string>
+    <string name="speed_slow">بطيئة</string>
+    <string name="speed_normal">متوسطة</string>
+    <string name="speed_fast">سريعة</string>
+
+    <string name="need_permission_toast">امنح إذن الظهور فوق التطبيقات أولاً</string>
+
+    <string name="notif_channel_name">الشخصية العائمة</string>
+    <string name="notif_channel_desc">إشعار خفيف يبقي الشخصية تعمل في الخلفية</string>
+    <string name="notif_title">الشخصية تعمل</string>
+    <string name="notif_text">اضغط لفتح التطبيق</string>
+    <string name="notif_stop">إيقاف</string>
+</resources>
