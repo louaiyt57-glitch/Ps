@@ -554,12 +554,8 @@ class PetRenderer(density: Float) {
         }
     }
 
-    /** لحية داكنة أسفل الوجه والفم بلون وردي فوقها. */
+    /** الفم فقط (للذكر، بلا لحية). */
     private fun beardMouthFront(face: Face, p: Pose) {
-        rect(-4f, -3.9f, 4f, -1f, Col.BEARD)
-        rect(-4f, -5f, -3.2f, -3.9f, Col.BEARD)
-        rect(3.2f, -5f, 4f, -3.9f, Col.BEARD)
-        rect(-2.6f, -4.5f, 2.6f, -3.7f, Col.BEARD)
         mouthFront(face, p)
     }
 
@@ -637,22 +633,7 @@ class PetRenderer(density: Float) {
             else -> Unit
         }
 
-        // لحية وشارب (للذكر فقط)
-        if (fem) {
-            // فم الأنثى من الجانب
-            val m = Col.MOUTH
-            when (face) {
-                Face.HAPPY -> { rect(1.9f, -3.3f, 4f, -2.8f, m); rect(3.6f, -3.8f, 4f, -3.3f, m) }
-                Face.LAUGH -> rect(1.9f, -3.9f, 4f, -1.8f, m)
-                Face.YAWN -> rect(2.2f, -4f, 4f, -1.5f, m)
-                Face.SURPRISED -> rect(2.6f, -3.6f, 3.9f, -2.2f, m)
-                Face.SAD -> { rect(2.2f, -3f, 4f, -2.5f, m); rect(3.6f, -2.5f, 4f, -2f, m) }
-                else -> rect(2.4f, -3.3f, 4f, -2.8f, m)
-            }
-            return
-        }
-        rect(-1f, -3.9f, 3.8f, -1f, Col.BEARD)
-        rect(2f, -4.6f, 4.4f, -3.7f, Col.BEARD)
+        // فم الذكر من الجانب (بلا لحية أو شارب)
         val m = Col.MOUTH
         when (face) {
             Face.HAPPY -> { rect(1.9f, -3.3f, 4f, -2.8f, m); rect(3.6f, -3.8f, 4f, -3.3f, m) }
