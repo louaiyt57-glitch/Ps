@@ -9,10 +9,15 @@ object Prefs {
     private const val K_SPEED = "speed"
     private const val K_X = "pos_x"
     private const val K_Y = "pos_y"
+    private const val K_GENDER = "gender"
+    private const val K_SOUND = "tap_sound"
 
     const val SPEED_SLOW = 0
     const val SPEED_NORMAL = 1
     const val SPEED_FAST = 2
+
+    const val GENDER_MALE = 0
+    const val GENDER_FEMALE = 1
 
     private fun sp(c: Context) = c.getSharedPreferences(FILE, Context.MODE_PRIVATE)
 
@@ -39,4 +44,12 @@ object Prefs {
     fun savedX(c: Context): Int = sp(c).getInt(K_X, -1)
     fun savedY(c: Context): Int = sp(c).getInt(K_Y, -1)
     fun savePos(c: Context, x: Int, y: Int) = sp(c).edit().putInt(K_X, x).putInt(K_Y, y).apply()
+
+    /** جنس الشخصية: 0 = ذكر، 1 = أنثى. */
+    fun gender(c: Context): Int = sp(c).getInt(K_GENDER, GENDER_MALE)
+    fun setGender(c: Context, v: Int) = sp(c).edit().putInt(K_GENDER, v).apply()
+
+    /** صوت الضربة عند النقر على الشخصية. */
+    fun tapSound(c: Context): Boolean = sp(c).getBoolean(K_SOUND, true)
+    fun setTapSound(c: Context, v: Boolean) = sp(c).edit().putBoolean(K_SOUND, v).apply()
 }

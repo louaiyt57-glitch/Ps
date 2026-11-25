@@ -1,6 +1,7 @@
 package com.pixelpet.app
 
 import kotlin.math.abs
+import kotlin.math.PI
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sin
@@ -322,6 +323,293 @@ object PetPose {
             Anim.WAVE_SOFT -> {
                 p.armR = 125f + sin(t * 5f) * 18f; p.armL = 8f
                 p.headTilt = sin(t * 2f) * 3f
+            }
+
+            // ───── الحركات الجديدة (51 – 100) ─────
+            Anim.SKATE -> {
+                p.side = true; p.lean = 8f
+                p.swing = sin(t * 6f) * 4.5f
+                p.legL = 18f + sin(t * 6f) * 10f
+                p.legR = -18f - sin(t * 6f) * 10f
+                p.armL = 25f + sin(t * 6f) * 12f
+                p.armR = -25f - sin(t * 6f) * 12f
+            }
+            Anim.SKIP -> {
+                val ph = (t * 4f) % 1f
+                p.dy = -abs(sin(ph * PI).toFloat()) * 4f
+                p.legL = sin(ph * 2f * PI).toFloat() * 22f
+                p.legR = -sin(ph * 2f * PI).toFloat() * 22f
+                p.armL = 30f; p.armR = -30f
+                p.headTilt = sin(t * 4f) * 4f
+            }
+            Anim.SHADOW_BOX -> {
+                p.armL = 55f + sin(t * 14f) * 55f
+                p.armR = 55f - sin(t * 14f) * 55f
+                p.legSpread = 1.5f
+                p.dx = sin(t * 7f) * 1.2f
+                p.headTilt = sin(t * 14f) * 3f
+            }
+            Anim.JUGGLE -> {
+                p.armL = 70f + sin(t * 10f) * 18f
+                p.armR = -70f - sin(t * 10f + 2.1f) * 18f
+                p.lookY = sin(t * 10f) * 0.6f
+                p.look = sin(t * 10f) * 0.5f
+            }
+            Anim.YOGA -> {
+                p.sit = true; p.legSpread = 3.5f
+                p.armL = 140f; p.armR = -140f
+                p.dy = 1.5f
+            }
+            Anim.PUSHUP -> {
+                val ph = abs(sin(t * 3.5f))
+                p.dy = ph * 5f
+                p.armL = 160f; p.armR = 160f
+                p.lean = 8f
+            }
+            Anim.HIGH_JUMP -> {
+                val ph = (t * 2.2f) % 1f
+                val j = sin(ph * PI).toFloat()
+                p.dy = -j * 8f
+                p.legL = -25f * j; p.legR = -25f * j
+                p.armL = -60f * j; p.armR = 60f * j
+            }
+            Anim.BACKFLIP -> {
+                val ph = (t * 2.2f) % 1f
+                val j = sin(ph * PI).toFloat()
+                p.dy = -j * 10f
+                p.legL = -35f * j; p.legR = -35f * j
+                p.armL = -80f * j; p.armR = 80f * j
+                p.headTilt = j * 10f
+            }
+            Anim.MOONWALK -> {
+                p.side = true
+                p.swing = -sin(t * 5f) * 4.5f
+                p.legL = p.swing * 3f; p.legR = -p.swing * 3f
+                p.armL = -20f + sin(t * 5f) * 10f
+                p.armR = 20f - sin(t * 5f) * 10f
+                p.headTilt = 8f
+            }
+            Anim.GUITAR -> {
+                p.sit = true
+                p.armL = 95f + sin(t * 8f) * 10f
+                p.armR = 120f + sin(t * 8f + 1f) * 14f
+                p.legSpread = 2f
+                p.headTilt = sin(t * 8f) * 3f
+            }
+            Anim.SING -> {
+                p.armL = -40f + sin(t * 5f) * 8f
+                p.armR = 40f - sin(t * 5f) * 8f
+                p.headTilt = sin(t * 3f) * 6f
+                p.dy = -abs(sin(t * 3f)) * 1.5f
+            }
+            Anim.MEDITATE -> {
+                p.sit = true; p.legSpread = 3.5f
+                p.armL = 150f; p.armR = -150f
+                p.dy = sin(t * 1.5f) * 0.8f
+            }
+            Anim.STARGAZE -> {
+                p.headTilt = -18f
+                p.lookY = -0.7f
+                p.armL = 20f; p.armR = -20f
+            }
+            Anim.SWAY -> {
+                p.lean = sin(t * 2.5f) * 6f
+                p.armL = sin(t * 2.5f) * 12f
+                p.armR = sin(t * 2.5f) * 12f
+                p.dx = sin(t * 2.5f) * 1.5f
+            }
+            Anim.NOODLE -> {
+                p.armR = 85f + sin(t * 6f) * 6f
+                p.armL = 45f
+                p.look = 0.4f
+            }
+            Anim.ICE_CREAM -> {
+                p.armR = 80f
+                p.headTilt = sin(t * 5f) * 4f
+                p.look = 0.5f
+                p.armL = 30f
+            }
+            Anim.POPSICLE -> {
+                p.armR = 75f + sin(t * 4f) * 5f
+                p.look = 0.4f
+            }
+            Anim.HOT_MILK -> {
+                p.sit = true
+                p.armR = 110f
+                p.armL = 95f
+                p.lookY = 0.5f
+            }
+            Anim.SNACK_HIDE -> {
+                p.armR = 130f
+                p.armL = 120f
+                p.headTilt = 6f
+                p.look = -0.6f
+                p.blush = 0.7f
+            }
+            Anim.WATER_DRINK -> {
+                p.armR = 95f
+                p.headTilt = -8f
+                p.lookY = 0.4f
+            }
+            Anim.TEA_POUR -> {
+                p.armR = 100f + sin(t * 2f) * 3f
+                p.armL = 40f
+                p.lookY = 0.6f
+                p.headTilt = 5f
+            }
+            Anim.SNOW_ANGEL -> {
+                p.dy = 3f
+                val w = sin(t * 5f)
+                p.armL = 60f + w * 50f
+                p.armR = 60f + w * 50f
+                p.legL = -w * 20f; p.legR = w * 20f
+                p.legSpread = 1f
+            }
+            Anim.IGLOO -> {
+                p.sit = true
+                p.armL = 80f + sin(t * 6f) * 12f
+                p.armR = 80f + sin(t * 6f + 0.8f) * 12f
+                p.lookY = 0.4f
+            }
+            Anim.WARM_HANDS -> {
+                val rub = sin(t * 10f) * 6f
+                p.armL = 95f + rub; p.armR = -95f + rub
+                p.headTilt = 6f
+                p.lookY = 0.6f
+            }
+            Anim.COLD_BREATH -> {
+                p.headTilt = -6f
+                p.dy = sin(t * 2.5f) * 1f
+                p.armL = 25f; p.armR = -25f
+            }
+            Anim.SNOW_SHOVEL -> {
+                p.side = true
+                p.armL = 60f + sin(t * 3.5f) * 45f
+                p.armR = 60f + sin(t * 3.5f) * 45f
+                p.lean = sin(t * 3.5f) * 8f
+            }
+            Anim.SLED -> {
+                p.side = true; p.sit = true
+                p.armL = 45f; p.armR = 60f
+                p.lean = 12f
+                p.dx = sin(t * 2f) * 1f
+            }
+            Anim.HAT_PULL -> {
+                p.armL = 140f + sin(t * 4f) * 8f
+                p.armR = -140f - sin(t * 4f) * 8f
+                p.dy = -abs(sin(t * 4f)) * 1.2f
+            }
+            Anim.BOOTS_STOMP -> {
+                p.legL = -35f * abs(sin(t * 6f))
+                p.legR = -35f * abs(cos(t * 6f))
+                p.dy = -abs(sin(t * 6f)) * 1.2f
+                p.armL = 35f; p.armR = -35f
+            }
+            Anim.SELFIE -> {
+                p.armL = 155f
+                p.armR = 30f
+                p.headTilt = 8f
+                p.look = 0.5f
+                p.dy = -abs(sin(t * 2f)) * 0.8f
+            }
+            Anim.GAME_OVER -> {
+                p.armL = 130f; p.armR = -130f
+                p.headTilt = -10f
+                p.lookY = -0.5f
+                p.dx = sin(t * 20f) * 0.8f
+            }
+            Anim.CHARGE_PHONE -> {
+                p.armR = 70f
+                p.lookY = 0.5f
+                p.look = 0.4f
+                p.headTilt = 4f
+            }
+            Anim.BUG_FOUND -> {
+                p.armL = 60f; p.armR = -60f
+                p.look = sin(t * 6f) * 0.5f
+                p.headTilt = sin(t * 6f) * 3f
+            }
+            Anim.COFFEE_REFILL -> {
+                p.armR = 100f
+                p.armL = 60f
+                p.lookY = 0.4f
+                p.headTilt = sin(t * 2f) * 2f
+            }
+            Anim.WATER_PLANT -> {
+                p.armR = 85f + sin(t * 2f) * 4f
+                p.armL = 35f
+                p.lookY = 0.5f
+            }
+            Anim.TIME_CHECK -> {
+                p.armL = 130f
+                p.lookY = -0.3f
+                p.look = -0.5f
+                p.headTilt = -6f
+            }
+            Anim.GLASSES_CLEAN -> {
+                p.armL = 145f + sin(t * 6f) * 10f
+                p.armR = -145f - sin(t * 6f) * 10f
+                p.headTilt = sin(t * 6f) * 2f
+            }
+            Anim.TYPE_FAST -> {
+                p.sit = true
+                p.armL = 100f + sin(t * 22f) * 8f
+                p.armR = -100f - sin(t * 22f + 1f) * 8f
+                p.lookY = 0.5f
+            }
+            Anim.STRETCH_BACK -> {
+                p.armL = -150f; p.armR = 150f
+                p.lean = sin(t * 1.8f) * 5f
+                p.dy = -1f
+            }
+            Anim.CHEER_UP -> {
+                p.armL = -50f + sin(t * 8f) * 15f
+                p.armR = 50f - sin(t * 8f) * 15f
+                p.dy = -abs(sin(t * 8f)) * 2f
+                p.headTilt = sin(t * 4f) * 4f
+            }
+            Anim.PATIENCE -> {
+                p.sit = true
+                p.armL = 110f; p.armR = -110f
+                p.headTilt = 8f
+                p.dy = sin(t * 1.2f) * 0.5f
+            }
+            Anim.GENIUS -> {
+                p.armR = 120f
+                p.armL = 45f
+                p.look = sin(t * 3f) * 0.3f
+                p.headTilt = -5f
+            }
+            Anim.HEAD_PAT -> {
+                p.sit = true
+                p.headTilt = 10f
+                p.lookY = 0.3f
+                p.armL = 20f; p.armR = -20f
+                p.dy = sin(t * 2f) * 0.4f
+            }
+            Anim.FINGER_HEART -> {
+                p.armR = 95f
+                p.armL = 30f
+                p.headTilt = 5f
+                p.look = 0.4f
+            }
+            Anim.MOTIVATED -> {
+                p.armL = -70f; p.armR = 70f
+                p.lean = -4f
+                p.dy = -abs(sin(t * 3f)) * 1.5f
+                p.headTilt = -4f
+            }
+            Anim.SIGH -> {
+                p.armL = 15f; p.armR = -15f
+                p.headTilt = 12f
+                val s = sin(t * 1.5f)
+                p.dy = s * 1.2f
+            }
+            Anim.SHY_COVER -> {
+                p.armL = 150f; p.armR = -150f
+                p.headTilt = 14f
+                p.look = -0.5f
+                p.blush = 1f
             }
         }
     }

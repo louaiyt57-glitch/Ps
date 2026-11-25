@@ -29,6 +29,13 @@ object Col {
     val WHITE = Color.parseColor("#F7F7F7")
     val SNOW = Color.parseColor("#FFFFFF")
     val SNOW_D = Color.parseColor("#C9D6E6")
+    // ألوان الشخصية الأنثوية
+    val FHAIR = Color.parseColor("#4A2E1B")
+    val DRESS = Color.parseColor("#D6588C")
+    val DRESS_D = Color.parseColor("#A83B6B")
+    val FSCARF = Color.parseColor("#E8A0B4")
+    val FSCARF_D = Color.parseColor("#C97A94")
+    val BOW = Color.parseColor("#E85A8A")
 }
 
 /**
@@ -56,6 +63,10 @@ class PetRenderer(density: Float) {
     /** ارتفاع الرأس/العنق الحالي بإحداثيات العالم، تستخدمه المؤثرات */
     var neckW = -14f
     var curDx = 0f
+    /** 0 = ذكر (الافتراضي)، 1 = أنثى */
+    var gender = 0
+    private var hairC = Col.HAIR
+    private val fem get() = gender == 1
 
     private val props = PropPainter(this)
     private val fx = FxPainter(this)
@@ -111,6 +122,7 @@ class PetRenderer(density: Float) {
      */
     fun draw(canvas: Canvas, left: Float, top: Float, st: PetState, p: Pose, face: Face, facing: Int, t: Float) {
         c = canvas
+        hairC = if (fem) Col.FHAIR else Col.HAIR
         c.save()
         c.translate(left + feetX, top + feetY)
         c.scale(u, u)
@@ -144,8 +156,8 @@ class PetRenderer(density: Float) {
         c.restore()
     }
 
-    private fun legFront(x: Float, lift: Float, h: Float) {
-        rect(x, -h - lift, x + 3f, -1f - lift, Col.PANTS)
+    private fun legFront(x: Float, lift: Float, h: Float, color: Int) {
+        rect(x, -h - lift, x + 3f, -1f - lift, color)
         rect(x - 0.4f, -1.2f - lift, x + 3.4f, -lift, Col.SHOE)
     }
 
@@ -164,22 +176,40 @@ class PetRenderer(density: Float) {
 
         if (!p.side) {
             // ───── منظر أمامي ─────
-            legFront(-3.7f - p.legSpread, p.legL, legH)
-            legFront(0.7f + p.legSpread, p.legR, legH)
+            val legC = if (fem) Col.SKIN else Col.PANTS
+            legFront(-3.7f - p.legSpread, p.legL, legH, legC)
+            legFront(0.7f + p.legSpread, p.legR, legH, legC)
 
-            rect(-4.4f, bb - 3f, 4.4f, bb, Col.COAT)
-            rect(-4f, neck, 4f, bb - 3f, Col.COAT)
-            rect(-4f, neck, -3.2f, bb, Col.COAT_D)
-            rect(3.2f, neck, 4f, bb, Col.COAT_D)
-            rect(-0.3f, neck + 1.4f, 0.3f, bb, Col.COAT_D)
-            rect(0.9f, neck + 3.5f, 1.6f, neck + 4.2f, Col.HAIR)
-            rect(0.9f, neck + 5.5f, 1.6f, neck + 6.2f, Col.HAIR)
-            rect(-4.4f, bb - 0.8f, 4.4f, bb, Col.COAT_D)
+            val bodyC = if (fem) Col.DRESS else Col.COAT
+            val bodyD = if (fem) Col.DRESS_D else Col.COAT_D
+            val btn = if (fem) Col.DRESS_D else Col.HAIR
+            val scC = if (fem) Col.FSCARF else Col.SCARF
+            val scD = if (fem) Col.FSCARF_D else Col.SCARF_D
 
-            rect(-4.6f, neck - 1.3f, 4.6f, neck + 1.5f, Col.SCARF)
-            rect(-4.6f, neck + 0.9f, 4.6f, neck + 1.5f, Col.SCARF_D)
-            rect(0.6f + sw, neck + 1.5f, 3.2f + sw, neck + 6.5f, Col.SCARF)
-            rect(0.6f + sw, neck + 5.6f, 3.2f + sw, neck + 6.5f, Col.SCARF_D)
+            rect(-4.4f, bb - 3f, 4.4f, bb, bodyC)
+            rect(-4f, neck, 4f, bb - 3f, bodyC)
+            rect(-4f, neck, -3.2f, bb, bodyD)
+            rect(3.2f, neck, 4f, bb, bodyD)
+            rect(-0.3f, neck + 1.4f, 0.3f, bb, bodyD)
+            rect(0.9f, neck + 3.5f, 1.6f, neck + 4.2f, btn)
+            rect(0.9f, neck + 5.5f, 1.6f, neck + 6.2f, btn)
+            if (fem) {
+                // تنورة أعرض أسفل الفستان
+                rect(-5.6f, bb - 1.6f, 5.6f, bb, bodyC)
+                rect(-5.6f, bb - 0.8f, 5.6f, bb, bodyD)
+            } else {
+                rect(-4.4f, bb - 0.8f, 4.4f, bb, bodyD)
+            }
+
+            rect(-4.6f, neck - 1.3f, 4.6f, neck + 1.5f, scC)
+            rect(-4.6f, neck + 0.9f, 4.6f, neck + 1.5f, scD)
+            if (fem) {
+                // فيونكة على الوشاح
+                rect(-1.6f, neck + 0.2f, -0.4f, neck + 1.4f, Col.BOW)
+            } else {
+                rect(0.6f + sw, neck + 1.5f, 3.2f + sw, neck + 6.5f, scC)
+                rect(0.6f + sw, neck + 5.6f, 3.2f + sw, neck + 6.5f, scD)
+            }
 
             c.save()
             c.translate(0f, neck)
@@ -193,25 +223,34 @@ class PetRenderer(density: Float) {
         } else {
             // ───── منظر جانبي (للمشي والركض والتسلل) ─────
             armSide(sy, p.armL, false)                       // الذراع البعيدة خلف الجسم
-            legSide(-p.swing, p.legR, legH, Col.PANTS_D)     // الرجل الخلفية أغمق
-            legSide(p.swing, p.legL, legH, Col.PANTS)
+            legSide(-p.swing, p.legR, legH, if (fem) Col.SKIN_D else Col.PANTS_D)  // الرجل الخلفية أغمق
+            legSide(p.swing, p.legL, legH, if (fem) Col.SKIN else Col.PANTS)
 
-            rect(-3.4f, bb - 3f, 3.4f, bb, Col.COAT)
-            rect(-3f, neck, 3f, bb - 3f, Col.COAT)
-            rect(-3f, neck, -2.2f, bb, Col.COAT_D)
-            rect(-3.4f, bb - 0.8f, 3.4f, bb, Col.COAT_D)
-            rect(1.6f, neck + 1.4f, 2.2f, bb, Col.COAT_D)
-            rect(2.2f, neck + 3.5f, 2.9f, neck + 4.2f, Col.HAIR)
-            rect(2.2f, neck + 5.5f, 2.9f, neck + 6.2f, Col.HAIR)
+            val bodyC = if (fem) Col.DRESS else Col.COAT
+            val bodyD = if (fem) Col.DRESS_D else Col.COAT_D
+            val btn = if (fem) Col.DRESS_D else Col.HAIR
+            val scC = if (fem) Col.FSCARF else Col.SCARF
+            val scD = if (fem) Col.FSCARF_D else Col.SCARF_D
+
+            rect(-3.4f, bb - 3f, 3.4f, bb, bodyC)
+            rect(-3f, neck, 3f, bb - 3f, bodyC)
+            rect(-3f, neck, -2.2f, bb, bodyD)
+            if (fem) rect(-4.6f, bb - 1.6f, 4.6f, bb, bodyC) // ذيل الفستان من الجانب
+            rect(-3.4f, bb - 0.8f, 3.4f, bb, bodyD)
+            rect(1.6f, neck + 1.4f, 2.2f, bb, btn)
+            rect(2.2f, neck + 3.5f, 2.9f, neck + 4.2f, btn)
+            rect(2.2f, neck + 5.5f, 2.9f, neck + 6.2f, btn)
 
             // الوشاح: طوق + ذيل يرفرف للخلف (أطول عند الركض)
             val speed = (kotlin.math.abs(p.swing) / 3.8f).coerceIn(0f, 1f)
             val tail = 3f + speed * 3f
             val fl = sin(t * 9f) * 0.5f * (0.4f + speed)
-            rect(-3.8f, neck - 1.3f, 3.8f, neck + 1.5f, Col.SCARF)
-            rect(-3.8f, neck + 0.9f, 3.8f, neck + 1.5f, Col.SCARF_D)
-            rect(-3.8f - tail, neck + 0.6f + fl, -3.4f, neck + 2.4f + fl, Col.SCARF)
-            rect(-3.8f - tail, neck + 1.8f + fl, -3.4f, neck + 2.4f + fl, Col.SCARF_D)
+            rect(-3.8f, neck - 1.3f, 3.8f, neck + 1.5f, scC)
+            rect(-3.8f, neck + 0.9f, 3.8f, neck + 1.5f, scD)
+            if (!fem) {
+                rect(-3.8f - tail, neck + 0.6f + fl, -3.4f, neck + 2.4f + fl, scC)
+                rect(-3.8f - tail, neck + 1.8f + fl, -3.4f, neck + 2.4f + fl, scD)
+            }
 
             c.save()
             c.translate(0.4f, neck)
@@ -243,8 +282,8 @@ class PetRenderer(density: Float) {
         c.save()
         c.translate(sx, sy)
         c.rotate(if (mirror) -angle else angle)
-        rect(-1f, -0.8f, 1f, 5.2f, Col.COAT)
-        rect(-1f, 4.4f, 1f, 5.2f, Col.COAT_D)
+        rect(-1f, -0.8f, 1f, 5.2f, if (fem) Col.DRESS else Col.COAT)
+        rect(-1f, 4.4f, 1f, 5.2f, if (fem) Col.DRESS_D else Col.COAT_D)
         rect(-1f, 5.2f, 1f, 7.2f, Col.SKIN)
         c.restore()
     }
@@ -254,8 +293,8 @@ class PetRenderer(density: Float) {
         c.save()
         c.translate(0f, sy)
         c.rotate(-angle)
-        rect(-1f, -0.8f, 1f, 5.2f, if (near) Col.COAT else Col.COAT_D)
-        rect(-1f, 4.4f, 1f, 5.2f, if (near) Col.COAT_D else Col.HAIR)
+        rect(-1f, -0.8f, 1f, 5.2f, if (near) (if (fem) Col.DRESS else Col.COAT) else (if (fem) Col.DRESS_D else Col.COAT_D))
+        rect(-1f, 4.4f, 1f, 5.2f, if (near) (if (fem) Col.DRESS_D else Col.COAT_D) else hairC)
         rect(-1f, 5.2f, 1f, 7.2f, if (near) Col.SKIN else Col.SKIN_D)
         c.restore()
     }
@@ -264,15 +303,24 @@ class PetRenderer(density: Float) {
     private fun headFront(p: Pose, face: Face, t: Float) {
         rect(-4f, -9.8f, 4f, -1f, Col.SKIN)
         rect(-4f, -1.8f, 4f, -1f, Col.SKIN_D)
-        rect(-4.6f, -12.2f, 4.6f, -8.2f, Col.HAIR)
-        rect(-4.6f, -8.4f, -3.6f, -4.6f, Col.HAIR)
-        rect(3.6f, -8.4f, 4.6f, -4.6f, Col.HAIR)
+        rect(-4.6f, -12.2f, 4.6f, -8.2f, hairC)
+        rect(-4.6f, -8.4f, -3.6f, -4.6f, hairC)
+        rect(3.6f, -8.4f, 4.6f, -4.6f, hairC)
+        if (fem) {
+            // شعر طويل على الجانبين + غرة
+            rect(-5.2f, -11.6f, -4.0f, -1.2f, hairC)
+            rect(4.0f, -11.6f, 5.2f, -1.2f, hairC)
+            rect(-4.6f, -9.8f, 4.6f, -8.6f, hairC)
+            // فيونكة على الرأس
+            rect(2.4f, -12.6f, 4.4f, -11.6f, Col.BOW)
+            rect(3.2f, -12.9f, 3.7f, -11.3f, Col.BOW)
+        }
 
         val ey = -5.7f
         val blink = face == Face.NORMAL && (t % 3.4f) < 0.12f
         eyeFront(-2f, ey, face, blink, p)
         eyeFront(2f, ey, face, blink, p)
-        rect(-0.5f, ey - 0.3f, 0.5f, ey + 0.2f, Col.HAIR)
+        rect(-0.5f, ey - 0.3f, 0.5f, ey + 0.2f, hairC)
         browsFront(face, ey)
 
         val b = if (face == Face.SHY) max(p.blush, 0.9f) else p.blush
@@ -281,7 +329,33 @@ class PetRenderer(density: Float) {
             rect(-3.9f, ey + 1.6f, -2.3f, ey + 2.4f, Col.BLUSH, a)
             rect(2.3f, ey + 1.6f, 3.9f, ey + 2.4f, Col.BLUSH, a)
         }
-        beardMouthFront(face, p)
+        if (fem) mouthFront(face, p) else beardMouthFront(face, p)
+    }
+
+    /** الفم فقط (للأنثى) */
+    private fun mouthFront(face: Face, p: Pose) {
+        val m = Col.MOUTH
+        if (p.chew > 0.5f) { rect(-0.9f, -3.4f, 0.9f, -2.2f, m); return }
+        when (face) {
+            Face.HAPPY -> {
+                rect(-1.4f, -3.3f, 1.4f, -2.7f, m)
+                rect(-1.9f, -3.8f, -1.4f, -3.3f, m); rect(1.4f, -3.8f, 1.9f, -3.3f, m)
+            }
+            Face.LAUGH -> {
+                rect(-1.8f, -3.9f, 1.8f, -1.8f, m)
+                rect(-1f, -3.9f, 1f, -3.4f, Col.WHITE)
+            }
+            Face.YAWN -> rect(-1.3f, -4f, 1.3f, -1.5f, m)
+            Face.SURPRISED -> rect(-0.7f, -3.6f, 0.7f, -2.2f, m)
+            Face.SAD -> {
+                rect(-1.2f, -3.2f, 1.2f, -2.7f, m)
+                rect(-1.7f, -2.7f, -1.2f, -2.2f, m); rect(1.2f, -2.7f, 1.7f, -2.2f, m)
+            }
+            Face.ANGRY -> rect(-1.3f, -3.2f, 1.3f, -2.6f, m)
+            Face.THINK -> rect(-0.3f, -3.2f, 1.5f, -2.8f, m)
+            Face.SHY -> { rect(-1f, -3.2f, 0f, -2.8f, m); rect(0f, -3.5f, 1f, -3.1f, m) }
+            else -> rect(-1f, -3.3f, 1f, -2.7f, m)
+        }
     }
 
     private fun eyeFront(cx: Float, ey: Float, face: Face, blink: Boolean, p: Pose) {
@@ -342,48 +416,35 @@ class PetRenderer(density: Float) {
         rect(-4f, -5f, -3.2f, -3.9f, Col.BEARD)
         rect(3.2f, -5f, 4f, -3.9f, Col.BEARD)
         rect(-2.6f, -4.5f, 2.6f, -3.7f, Col.BEARD)
-        val m = Col.MOUTH
-        if (p.chew > 0.5f) { rect(-0.9f, -3.4f, 0.9f, -2.2f, m); return }
-        when (face) {
-            Face.HAPPY -> {
-                rect(-1.4f, -3.3f, 1.4f, -2.7f, m)
-                rect(-1.9f, -3.8f, -1.4f, -3.3f, m); rect(1.4f, -3.8f, 1.9f, -3.3f, m)
-            }
-            Face.LAUGH -> {
-                rect(-1.8f, -3.9f, 1.8f, -1.8f, m)
-                rect(-1f, -3.9f, 1f, -3.4f, Col.WHITE)
-            }
-            Face.YAWN -> rect(-1.3f, -4f, 1.3f, -1.5f, m)
-            Face.SURPRISED -> rect(-0.7f, -3.6f, 0.7f, -2.2f, m)
-            Face.SAD -> {
-                rect(-1.2f, -3.2f, 1.2f, -2.7f, m)
-                rect(-1.7f, -2.7f, -1.2f, -2.2f, m); rect(1.2f, -2.7f, 1.7f, -2.2f, m)
-            }
-            Face.ANGRY -> rect(-1.3f, -3.2f, 1.3f, -2.6f, m)
-            Face.THINK -> rect(-0.3f, -3.2f, 1.5f, -2.8f, m)
-            Face.SHY -> { rect(-1f, -3.2f, 0f, -2.8f, m); rect(0f, -3.5f, 1f, -3.1f, m) }
-            else -> rect(-1f, -3.3f, 1f, -2.7f, m)
-        }
+        mouthFront(face, p)
     }
 
-    // ───── الرأس الجانبي (يتجه نحو +x): عين واحدة بنظارة، أنف، لحية وشارب ─────
+    // ───── الرأس الجانبي (يتجه نحو +x): عين واحدة، أنف، لحية وشارب للذكر ─────
     private fun headSide(p: Pose, face: Face, t: Float) {
         rect(-3.8f, -9.8f, 3.8f, -1f, Col.SKIN)
         rect(-3.8f, -1.8f, 3.8f, -1f, Col.SKIN_D)
         rect(3.8f, -5.4f, 5f, -3.9f, Col.SKIN)                 // الأنف
-        rect(-4.6f, -12.2f, 4.2f, -8.2f, Col.HAIR)
-        rect(-4.6f, -8.4f, -1.6f, -3.2f, Col.HAIR)             // شعر الخلف
-        rect(2.6f, -8.4f, 4.2f, -7.7f, Col.HAIR)               // الغرة
+        rect(-4.6f, -12.2f, 4.2f, -8.2f, hairC)
+        rect(-4.6f, -8.4f, -1.6f, -3.2f, hairC)                // شعر الخلف
+        rect(2.6f, -8.4f, 4.2f, -7.7f, hairC)                  // الغرة
+        if (fem) {
+            // شعر طويل خلفي + ذيل حصان
+            rect(-6.4f, -11.8f, -4.4f, -2f, hairC)
+            val fl = sin(t * 3f) * 0.5f
+            rect(-7.6f, -11.4f + fl, -6.2f, -6f + fl, hairC)
+            rect(2.4f, -12.6f, 4.4f, -11.6f, Col.BOW)
+            rect(3.2f, -12.9f, 3.7f, -11.3f, Col.BOW)
+        }
 
         val ey = -5.7f
         val blink = face == Face.NORMAL && (t % 3.4f) < 0.12f
-        rect(-3.5f, ey - 0.25f, 1.2f, ey + 0.25f, Col.HAIR)    // ذراع النظارة
+        if (!fem) rect(-3.5f, ey - 0.25f, 1.2f, ey + 0.25f, hairC)   // ذراع النظارة
         val x0 = 1.1f
         var x1 = 4.4f
         var y0 = ey - 1.3f
         var y1 = ey + 1.3f
         if (face == Face.SURPRISED) { x1 += 0.3f; y0 -= 0.3f; y1 += 0.3f }
-        rect(x0, y0, x1, y1, Col.HAIR)
+        rect(x0, y0, x1, y1, hairC)
         val dn = if (face == Face.SAD) 0.3f else 0f
         when {
             blink || face == Face.CLOSED || face == Face.YAWN -> {
@@ -410,7 +471,20 @@ class PetRenderer(density: Float) {
             else -> Unit
         }
 
-        // لحية وشارب
+        // لحية وشارب (للذكر فقط)
+        if (fem) {
+            // فم الأنثى من الجانب
+            val m = Col.MOUTH
+            when (face) {
+                Face.HAPPY -> { rect(1.9f, -3.3f, 4f, -2.8f, m); rect(3.6f, -3.8f, 4f, -3.3f, m) }
+                Face.LAUGH -> rect(1.9f, -3.9f, 4f, -1.8f, m)
+                Face.YAWN -> rect(2.2f, -4f, 4f, -1.5f, m)
+                Face.SURPRISED -> rect(2.6f, -3.6f, 3.9f, -2.2f, m)
+                Face.SAD -> { rect(2.2f, -3f, 4f, -2.5f, m); rect(3.6f, -2.5f, 4f, -2f, m) }
+                else -> rect(2.4f, -3.3f, 4f, -2.8f, m)
+            }
+            return
+        }
         rect(-1f, -3.9f, 3.8f, -1f, Col.BEARD)
         rect(2f, -4.6f, 4.4f, -3.7f, Col.BEARD)
         val m = Col.MOUTH

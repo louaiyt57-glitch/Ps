@@ -14,6 +14,10 @@
 
     <string name="auto_move">الحركة التلقائية العشوائية</string>
     <string name="speed_title">سرعة التبديل بين الحركات</string>
+    <string name="tap_sound">صوت الضربة عند اللمس</string>
+    <string name="gender_title">شكل الشخصية</string>
+    <string name="gender_male">ذكر</string>
+    <string name="gender_female">أنثى</string>
     <string name="speed_slow">بطيئة</string>
     <string name="speed_normal">متوسطة</string>
     <string name="speed_fast">سريعة</string>

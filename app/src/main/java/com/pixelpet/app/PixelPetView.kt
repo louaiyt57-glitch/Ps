@@ -38,6 +38,9 @@ class PixelPetView(context: Context) : View(context) {
 
     private val d = resources.displayMetrics.density
     private val renderer = PetRenderer(d)
+
+    /** جنس الشخصية: 0 ذكر، 1 أنثى. */
+    fun setGender(g: Int) { renderer.gender = g; invalidate() }
     private val pose = Pose()
     private val slop = ViewConfiguration.get(context).scaledTouchSlop
 

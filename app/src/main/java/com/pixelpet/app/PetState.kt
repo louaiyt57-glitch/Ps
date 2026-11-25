@@ -25,7 +25,15 @@ enum class Anim {
     SHOW, PUSH, SHIVER, SCARF, THROW, LOOK_UP, UMBRELLA,
     SIP, EAT, BELLY, RELAX,
     HAPPY, ANGRY, SHY, LAUGH, SIT_SAD, SHOCK, PROUD,
-    ASK, DANCE, EXERCISE, WAVE_SOFT
+    ASK, DANCE, EXERCISE, WAVE_SOFT,
+    // الحركات الجديدة (51 – 100)
+    SKATE, SKIP, SHADOW_BOX, JUGGLE, YOGA, PUSHUP, HIGH_JUMP, BACKFLIP, MOONWALK, GUITAR,
+    SING, MEDITATE, STARGAZE,
+    NOODLE, ICE_CREAM, POPSICLE, HOT_MILK, SNACK_HIDE, WATER_DRINK, TEA_POUR,
+    SNOW_ANGEL, IGLOO, WARM_HANDS, COLD_BREATH, SNOW_SHOVEL, SLED, HAT_PULL, BOOTS_STOMP,
+    SELFIE, GAME_OVER, CHARGE_PHONE, BUG_FOUND, COFFEE_REFILL, WATER_PLANT, TIME_CHECK, GLASSES_CLEAN, TYPE_FAST, STRETCH_BACK,
+    CHEER_UP, PATIENCE, GENIUS, HEAD_PAT, FINGER_HEART, MOTIVATED, SIGH, SHY_COVER,
+    SWAY
 }
 
 enum class Category(val arabic: String) {
@@ -130,7 +138,70 @@ enum class PetState(
         question = Question("ممتاز! استمر!", Face.HAPPY, "اشرب كوب ماء الآن!", Face.SURPRISED)),
     DANCE(48, Category.FUN, "وقت الرقص والموسيقى!", Anim.DANCE, face = Face.HAPPY, fx = Fx.NOTES, durationMs = 6500),
     EXERCISE(49, Category.FUN, "واحد، اثنان... حافظ على لياقتك!", Anim.EXERCISE, face = Face.HAPPY, fx = Fx.SWEAT, durationMs = 6500),
-    GOODBYE(50, Category.FUN, "أراك لاحقاً يا بطل!", Anim.WAVE_SOFT, face = Face.HAPPY, durationMs = 4500);
+    GOODBYE(50, Category.FUN, "أراك لاحقاً يا بطل!", Anim.WAVE_SOFT, face = Face.HAPPY, durationMs = 4500),
+
+    // ───── ثامناً: حركات جديدة — أنشطة وحركة (51 – 65) ─────
+    SKATE(51, Category.FUN, "أزلق على لوح التزحلق!", Anim.SKATE, face = Face.HAPPY, motion = Motion.RUN, durationMs = 6000),
+    SKIP(52, Category.FUN, "قفزات صغيرة مرح!", Anim.SKIP, face = Face.HAPPY, durationMs = 5000),
+    SHADOW_BOX(53, Category.FUN, "لكمة! وأخرى! أنا بطل!", Anim.SHADOW_BOX, face = Face.ANGRY, durationMs = 5000),
+    JUGGLE(54, Category.FUN, "أراقب ثلاث كرات... ولا تسقط واحدة!", Anim.JUGGLE, face = Face.THINK, fx = Fx.STARS, durationMs = 6000),
+    YOGA(55, Category.FUN, "تنفّس... واسترخِ...", Anim.YOGA, face = Face.CLOSED, durationMs = 6500),
+    PUSHUP(56, Category.FUN, "عشرون... واحد وعشرون!", Anim.PUSHUP, face = Face.NORMAL, fx = Fx.SWEAT, durationMs = 6000),
+    HIGH_JUMP(57, Category.FUN, "قفزة عالية جديدة!", Anim.HIGH_JUMP, face = Face.HAPPY, durationMs = 4500),
+    BACKFLIP(58, Category.FUN, "شقلبة هوائية! هل رأيتها؟", Anim.BACKFLIP, face = Face.LAUGH, durationMs = 4500),
+    MOONWALK(59, Category.FUN, "أمشي على القمر كما مايكل!", Anim.MOONWALK, face = Face.LAUGH, motion = Motion.WALK, durationMs = 6000),
+    GUITAR(60, Category.FUN, "عزفاً على الجيتار لأجلك!", Anim.GUITAR, face = Face.HAPPY, fx = Fx.NOTES, durationMs = 6500),
+    SING(61, Category.FUN, "لا لا لا... أغنيتي المفضلة!", Anim.SING, face = Face.HAPPY, fx = Fx.NOTES, durationMs = 6000),
+    MEDITATE(62, Category.EMOTION, "صفاء ذهني تام...", Anim.MEDITATE, face = Face.CLOSED, durationMs = 7000),
+    STARGAZE(63, Category.EMOTION, "النجوم جميلة الليلة!", Anim.STARGAZE, face = Face.HAPPY, fx = Fx.STARS, durationMs = 6500),
+    SWAY(64, Category.FUN, "أتمايل مع الإيقاع بهدوء.", Anim.SWAY, face = Face.HAPPY, fx = Fx.NOTES, durationMs = 5500),
+    ASK_SNACK(65, Category.FUN, "هل نأكل وجبة خفيفة؟", Anim.ASK, durationMs = 14000,
+        question = Question("رائع! شوكولاتة من فضلك!", Face.HAPPY, "حسناً، سأصمد... لأدفعة الدقائق!", Face.SAD)),
+
+    // ───── تاسعاً: طعام وشراب جديد (66 – 72) ─────
+    NOODLE(66, Category.FOOD, "شعيرات صلصة... يم يم!", Anim.NOODLE, face = Face.HAPPY, fx = Fx.STEAM, durationMs = 5500),
+    ICE_CREAM(67, Category.FOOD, "آيس كريم! لا يفوتني!", Anim.ICE_CREAM, face = Face.LAUGH, durationMs = 5500),
+    POPSICLE(68, Category.FOOD, "مثلجة باردة في يوم حار!", Anim.POPSICLE, face = Face.HAPPY, durationMs = 5500),
+    HOT_MILK(69, Category.FOOD, "كوب حليب دافئ قبل النوم.", Anim.HOT_MILK, face = Face.HAPPY, fx = Fx.STEAM, durationMs = 5500),
+    SNACK_HIDE(70, Category.FOOD, "لا أحد يرى بسكويتي السري!", Anim.SNACK_HIDE, face = Face.SHY, durationMs = 5000),
+    WATER_DRINK(71, Category.FOOD, "رشفة ماء باردة... رائعة!", Anim.WATER_DRINK, face = Face.HAPPY, durationMs = 5000),
+    TEA_POUR(72, Category.FOOD, "أسكب الشاي بحذر شديد...", Anim.TEA_POUR, face = Face.THINK, fx = Fx.STEAM, durationMs = 5500),
+
+    // ───── عاشراً: شتاء جديد (73 – 80) ─────
+    SNOW_ANGEL(73, Category.WINTER, "أرسم ملاكاً في الثلج!", Anim.SNOW_ANGEL, face = Face.LAUGH, fx = Fx.SNOW, durationMs = 6000),
+    IGLOO(74, Category.WINTER, "أبني قلعة ثلجية صغيرة.", Anim.IGLOO, face = Face.THINK, fx = Fx.SNOW, durationMs = 6500),
+    WARM_HANDS(75, Category.WINTER, "أفرد يدي على النار الدافئة.", Anim.WARM_HANDS, face = Face.HAPPY, durationMs = 5500),
+    COLD_BREATH(76, Category.WINTER, "انظر! نَفَسي بخار!", Anim.COLD_BREATH, face = Face.SURPRISED, fx = Fx.SNOW, durationMs = 5000),
+    SNOW_SHOVEL(77, Category.WINTER, "أزيح الثلج عن الطريق!", Anim.SNOW_SHOVEL, face = Face.NORMAL, fx = Fx.SNOW, durationMs = 6000),
+    SLED(78, Category.WINTER, "انطلاقة الزحليقة! حذارِ!", Anim.SLED, face = Face.LAUGH, motion = Motion.RUN, durationMs = 5000),
+    HAT_PULL(79, Category.WINTER, "قبعة صوفية دافئة... تمام.", Anim.HAT_PULL, face = Face.HAPPY, durationMs = 4500),
+    BOOTS_STOMP(80, Category.WINTER, "أخبط قدمي لأدفأ!", Anim.BOOTS_STOMP, face = Face.NORMAL, fx = Fx.SNOW, durationMs = 5000),
+
+    // ───── حادي عشر: عمل وتقنية جديد (81 – 90) ─────
+    SELFIE(81, Category.WORK, "صورة سيلفي! ابتسم!", Anim.SELFIE, face = Face.LAUGH, prop = Prop.PHONE, durationMs = 5000),
+    GAME_OVER(82, Category.WORK, "خسرة... جولة أخرى!", Anim.GAME_OVER, face = Face.ANGRY, prop = Prop.PHONE, fx = Fx.ANGER, durationMs = 5000),
+    CHARGE_PHONE(83, Category.WORK, "البطارية 1%! خطر حر!", Anim.CHARGE_PHONE, face = Face.SURPRISED, prop = Prop.PHONE, fx = Fx.EXCL, durationMs = 5000),
+    BUG_FOUND(84, Category.WORK, "وجدت الخلل! في السطر 42!", Anim.BUG_FOUND, face = Face.SURPRISED, prop = Prop.LAPTOP, fx = Fx.BULB, durationMs = 5500),
+    COFFEE_REFILL(85, Category.WORK, "إعادة تعبئة القهوة... الوقود الرسمي!", Anim.COFFEE_REFILL, face = Face.HAPPY, prop = Prop.COFFEE, fx = Fx.STEAM, durationMs = 5500),
+    WATER_PLANT(86, Category.WORK, "أسقي نباتي الصغير كل يوم.", Anim.WATER_PLANT, face = Face.HAPPY, durationMs = 5500),
+    TIME_CHECK(87, Category.WORK, "الساعة... متأخرون!", Anim.TIME_CHECK, face = Face.SURPRISED, fx = Fx.EXCL, durationMs = 4500),
+    GLASSES_CLEAN(88, Category.WORK, "أنظف نظارتي، ترى الدنيا أوضح.", Anim.GLASSES_CLEAN, face = Face.CLOSED, durationMs = 5000),
+    TYPE_FAST(89, Category.WORK, "موعد نهائي غداً... كتابة سريعة!", Anim.TYPE_FAST, face = Face.NORMAL, prop = Prop.LAPTOP, fx = Fx.SWEAT, durationMs = 6000),
+    STRETCH_BACK(90, Category.WORK, "تمطيط الظهر بعد جلوس طويل.", Anim.STRETCH_BACK, face = Face.HAPPY, durationMs = 5000),
+
+    // ───── ثاني عشر: مشاعر جديدة (91 – 100) ─────
+    CHEER_UP(91, Category.EMOTION, "لا تحزن! سأغني لك أغنية!", Anim.CHEER_UP, face = Face.HAPPY, fx = Fx.NOTES, durationMs = 6000),
+    PATIENCE(92, Category.EMOTION, "الصبر مفتاح الفرج...", Anim.PATIENCE, face = Face.THINK, fx = Fx.QMARK, durationMs = 6000),
+    GENIUS(93, Category.EMOTION, "أنا عبقري... أحياناً!", Anim.GENIUS, face = Face.HAPPY, fx = Fx.BULB, durationMs = 4500),
+    HEAD_PAT(94, Category.EMOTION, "شكراً للرعشة على الرأس!", Anim.HEAD_PAT, face = Face.SHY, fx = Fx.HEARTS, durationMs = 5000),
+    FINGER_HEART(95, Category.EMOTION, "قلب صغير من إصبعين لك!", Anim.FINGER_HEART, face = Face.HAPPY, fx = Fx.HEARTS, durationMs = 4500),
+    MOTIVATED(96, Category.EMOTION, "اليوم يومي! سأنجز كل شيء!", Anim.MOTIVATED, face = Face.HAPPY, fx = Fx.STARS, durationMs = 5500),
+    SIGH(97, Category.EMOTION, "يوم طويل... آه.", Anim.SIGH, face = Face.SAD, fx = Fx.TEAR, durationMs = 5500),
+    SHY_COVER(98, Category.EMOTION, "لا تنظر إليّ الآن!", Anim.SHY_COVER, face = Face.SHY, durationMs = 5000),
+    ASK_WALK(99, Category.FUN, "هل نخرج للتنزه قليلاً؟", Anim.ASK, durationMs = 14000,
+        question = Question("هيا! الهواء الطلق مفيد!", Face.HAPPY, "حسناً، نتنزه لاحقاً إذن.", Face.SAD)),
+    ASK_STORY(100, Category.FUN, "هل أحكي لك قصة قبل النوم؟", Anim.ASK, durationMs = 14000,
+        question = Question("كان يا ما كان... في قديم الزمان!", Face.HAPPY, "أكذوبة! النوم أفضل.", Face.SURPRISED));
 
     val isQuestion: Boolean get() = question != null
 
@@ -162,6 +233,11 @@ enum class PetState(
             WAKE_SUDDEN -> if (Random.nextInt(3) == 0) BACK_TO_SLEEP else random(current)
             TIRED_WORK -> if (Random.nextBoolean()) YAWN_SLEEPY else random(current)
             LAPTOP_WORK -> if (Random.nextInt(3) == 0) CELEBRATE else random(current)
+            NOODLE, ICE_CREAM, POPSICLE -> FULL_RELAX
+            HOT_MILK -> if (Random.nextBoolean()) YAWN_SLEEPY else random(current)
+            GAME_OVER -> if (Random.nextInt(3) == 0) ANGRY_CUTE else random(current)
+            CHARGE_PHONE -> COFFEE_REFILL
+            SIGH -> if (Random.nextBoolean()) CHEER_UP else random(current)
             else -> random(current)
         }
     }

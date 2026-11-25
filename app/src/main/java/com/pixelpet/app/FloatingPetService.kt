@@ -13,6 +13,7 @@ import android.content.pm.ServiceInfo
 import android.content.res.Configuration
 import android.graphics.drawable.Icon
 import android.graphics.PixelFormat
+import android.media.MediaPlayer
 import android.os.Build
 import android.os.IBinder
 import android.os.SystemClock
@@ -105,6 +106,7 @@ class FloatingPetService : Service(), PixelPetView.Listener {
 
         val v = PixelPetView(this)
         v.listener = this
+        v.setGender(Prefs.gender(this))
         view = v
 
         params = WindowManager.LayoutParams(
@@ -173,6 +175,7 @@ class FloatingPetService : Service(), PixelPetView.Listener {
         pauseLoop()
         if (receiverRegistered) {
             try { unregisterReceiver(screenReceiver) } catch (_: Exception) {}
+            try { hitPlayer?.release(); hitPlayer = null } catch (_: Exception) {}
             receiverRegistered = false
         }
         if (attached) {
@@ -341,10 +344,27 @@ class FloatingPetService : Service(), PixelPetView.Listener {
     override fun onTap() {
         val v = view ?: return
         if (phase == Phase.STATE && v.state.isQuestion && !reacting) return   // لا نقاطع السؤال
+        playHitSound()
         if (phase == Phase.STATE && v.state.sleeping) {
             startState(PetState.WAKE_SUDDEN)     // «هاه؟! لم أكن نائماً!»
-        } else {
+        } else if (phase == Phase.STATE && lastState == PetState.ANGRY_CUTE && reacting) {
             startState(PetState.random(lastState))
+        } else {
+            // ردة فعل الضربة: وجه مندهش وحركة انزعاج كيوت لثانيتين
+            reacting = true
+            v.faceOverride = Face.SURPRISED
+            startState(PetState.ANGRY_CUTE)
+        }
+    }
+
+    private var hitPlayer: MediaPlayer? = null
+
+    private fun playHitSound() {
+        if (!Prefs.tapSound(this)) return
+        try {
+            hitPlayer?.release()
+            hitPlayer = MediaPlayer.create(this, R.raw.hit)?.apply { start() }
+        } catch (_: Exception) {
         }
     }
 

@@ -120,6 +120,50 @@
                 android:textColor="@color/text_main"
                 android:textSize="16sp" />
 
+            <Switch
+                android:id="@+id/swSound"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp"
+                android:text="@string/tap_sound"
+                android:textColor="@color/text_main"
+                android:textSize="16sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="@string/gender_title"
+                android:textColor="@color/text_sub"
+                android:textSize="14sp" />
+
+            <RadioGroup
+                android:id="@+id/rgGender"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/rbMale"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:minHeight="48dp"
+                    android:text="@string/gender_male"
+                    android:textColor="@color/text_main"
+                    android:textSize="15sp" />
+
+                <RadioButton
+                    android:id="@+id/rbFemale"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:minHeight="48dp"
+                    android:text="@string/gender_female"
+                    android:textColor="@color/text_main"
+                    android:textSize="15sp" />
+            </RadioGroup>
+
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

@@ -27,7 +27,9 @@ class MainActivity : Activity() {
     private lateinit var btnStart: Button
     private lateinit var btnStop: Button
     private lateinit var swAuto: Switch
+    private lateinit var swSound: Switch
     private lateinit var rgSpeed: RadioGroup
+    private lateinit var rgGender: RadioGroup
 
     private val handler = Handler(Looper.getMainLooper())
     private val refresher = object : Runnable {
@@ -47,7 +49,9 @@ class MainActivity : Activity() {
         btnStart = findViewById(R.id.btnStart)
         btnStop = findViewById(R.id.btnStop)
         swAuto = findViewById(R.id.swAuto)
+        swSound = findViewById(R.id.swSound)
         rgSpeed = findViewById(R.id.rgSpeed)
+        rgGender = findViewById(R.id.rgGender)
 
         applyInsets(findViewById(R.id.root))
 
@@ -71,6 +75,14 @@ class MainActivity : Activity() {
 
         swAuto.isChecked = Prefs.autoMove(this)
         swAuto.setOnCheckedChangeListener { _, checked -> Prefs.setAutoMove(this, checked) }
+
+        swSound.isChecked = Prefs.tapSound(this)
+        swSound.setOnCheckedChangeListener { _, checked -> Prefs.setTapSound(this, checked) }
+
+        rgGender.check(if (Prefs.gender(this) == Prefs.GENDER_FEMALE) R.id.rbFemale else R.id.rbMale)
+        rgGender.setOnCheckedChangeListener { _, id ->
+            Prefs.setGender(this, if (id == R.id.rbFemale) Prefs.GENDER_FEMALE else Prefs.GENDER_MALE)
+        }
 
         rgSpeed.check(
             when (Prefs.speed(this)) {
