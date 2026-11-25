@@ -54,6 +54,8 @@ object Col {
     // إطار النظارة ودرجاتها
     val FRAME = Color.parseColor("#2B2B2B")
     val STICK = Color.parseColor("#E8C56A")
+    val SOCK = Color.parseColor("#EFEFEF")
+    val SHOE_D = Color.parseColor("#4A3626")
 }
 
 /**
@@ -201,14 +203,21 @@ class PetRenderer(density: Float) {
     }
 
     private fun legFront(x: Float, lift: Float, h: Float, color: Int) {
-        rect(x, -h - lift, x + 3f, -1f - lift, color)
-        rect(x - 0.4f, -1.2f - lift, x + 3.4f, -lift, Col.SHOE)
+        // رجل أنحف (2 وحدات بدل 3) بحذاء محدد بنعل وربطة
+        rect(x + 0.3f, -h - lift, x + 2.7f, -1.6f - lift, color)
+        rect(x + 0.3f, -1.6f - lift, x + 2.7f, -1.2f - lift, Col.SOCK)
+        // الحذاء
+        rect(x - 0.5f, -1.6f - lift, x + 3.5f, -0.5f - lift, Col.SHOE)
+        rect(x - 0.6f, -0.5f - lift, x + 3.6f, -lift, Col.SOLE)   // النعل
+        rect(x + 1.3f, -1.6f - lift, x + 1.7f, -0.5f - lift, Col.SHOE_D) // ربطة
     }
 
     /** رجل جانبية: القدم تتجه للأمام (+x). */
     private fun legSide(x: Float, lift: Float, h: Float, color: Int) {
-        rect(x - 1.5f, -h - lift, x + 1.5f, -1f - lift, color)
-        rect(x - 1.5f, -1.2f - lift, x + 2.9f, -lift, Col.SHOE)
+        rect(x - 1f, -h - lift, x + 1f, -1.6f - lift, color)
+        rect(x - 1f, -1.6f - lift, x + 1f, -1.2f - lift, Col.SOCK)
+        rect(x - 1f, -1.6f - lift, x + 3f, -0.5f - lift, Col.SHOE)   // القدم للأمام
+        rect(x - 1.1f, -0.5f - lift, x + 3.1f, -lift, Col.SOLE)
     }
 
     private fun body(p: Pose, face: Face, t: Float, st: PetState, facing: Int) {
@@ -504,29 +513,41 @@ class PetRenderer(density: Float) {
 
     private fun eyeFront(cx: Float, ey: Float, face: Face, blink: Boolean, p: Pose) {
         val big = face == Face.SURPRISED
-        val e = if (big) 0.3f else 0f
-        val x0 = cx - 1.5f - e; val x1 = cx + 1.5f + e
-        val y0 = ey - 1.2f - e; val y1 = ey + 1.2f + e
-        rect(x0, y0, x1, y1, Col.HAIR)
-        val ix0 = x0 + 0.5f; val ix1 = x1 - 0.5f; val iy0 = y0 + 0.5f; val iy1 = y1 - 0.5f
+        val e = if (big) 0.4f else 0f
+        val x0 = cx - 1.7f - e; val x1 = cx + 1.7f + e
+        val y0 = ey - 1.6f - e; val y1 = ey + 1.6f + e
+        // بياض العين (أبيض) حول البؤبؤ — عين أوضح وأكبر
+        rect(x0, y0, x1, y1, Col.WHITE)
+        rect(x0, y0, x0 + 0.5f, y1, Col.SKIN_D, 60)   // ظل خفيف يسدّ العين
         when {
             blink || face == Face.CLOSED || face == Face.YAWN -> {
-                rect(ix0, iy0, ix1, iy1, Col.SKIN_D)
-                rect(ix0, ey, ix1, ey + 0.5f, Col.HAIR)
+                // جفن مغلق: خط منحنٍ لطيف
+                rect(x0, ey + 0.3f, x1, ey + 0.9f, hairC)
+                rect(x0 + 0.5f, ey - 0.2f, x0 + 1f, ey + 0.3f, hairC)
+                rect(x1 - 1f, ey - 0.2f, x1 - 0.5f, ey + 0.3f, hairC)
             }
             face == Face.HAPPY || face == Face.LAUGH -> {
-                rect(ix0, iy0, ix1, iy1, Col.SKIN_D)
-                rect(ix0, ey + 0.1f, cx - 0.2f, ey + 0.6f, Col.HAIR)
-                rect(cx - 0.3f, ey - 0.4f, cx + 0.3f, ey + 0.1f, Col.HAIR)
-                rect(cx + 0.2f, ey + 0.1f, ix1, ey + 0.6f, Col.HAIR)
+                // عين سعيدة مقوّسة (∩): قوس سميك مع فجوة تحته
+                rect(x0 + 0.4f, ey + 0.2f, x1 - 0.4f, ey + 0.8f, Col.SKIN)
+                rect(x0, y0, x0 + 0.6f, y1 - 0.4f, hairC)
+                rect(x1 - 0.6f, y0, x1, y1 - 0.4f, hairC)
+                rect(x0 + 0.6f, y0, x1 - 0.6f, y0 + 0.7f, hairC)
+                rect(cx - 0.4f, y0, cx + 0.4f, y0 + 1.4f, hairC)
+            }
+            face == Face.ANGRY -> {
+                rect(x0 + 0.5f, y0 + 0.6f, x1 - 0.5f, y1, Col.LENS)
+                rect(cx - 0.6f, y0 + 0.9f, cx + 0.6f, y1 - 0.3f, hairC)
             }
             else -> {
-                rect(ix0, iy0, ix1, iy1, Col.LENS)
-                val ps = if (big) 0.7f else 0.9f
+                // عين عادية: بؤبؤ داكن كبير مع لمعة
+                rect(x0 + 0.5f, y0 + 0.5f, x1 - 0.5f, y1 - 0.5f, Col.LENS)
+                val ps = if (big) 1.6f else 1.8f
                 val px = cx + p.look * 0.5f
                 val py = ey + p.lookY * 0.3f + (if (face == Face.SAD) 0.3f else 0f)
-                rect(px - ps / 2, py - ps / 2, px + ps / 2, py + ps / 2, Col.HAIR)
-                if (face == Face.SLEEPY) rect(ix0, iy0, ix1, ey, Col.SKIN_D)
+                rect(px - ps / 2, py - ps / 2, px + ps / 2, py + ps / 2, hairC)
+                // لمعة بيضاء أعلى البؤبؤ
+                rect(px - ps / 2, py - ps / 2, px - ps / 2 + 0.5f, py - ps / 2 + 0.5f, Col.SHINE)
+                if (face == Face.SLEEPY) rect(x0 + 0.5f, y0 + 0.5f, x1 - 0.5f, ey, Col.SKIN_D)
             }
         }
     }
