@@ -62,10 +62,10 @@ object Col {
  * يرسم الشخصية وأغراضها بوحدات "بكسل" (unit). نقطة الأصل = منتصف أسفل القدمين، والمحور y السالب للأعلى.
  * كل المستطيلات بلا تنعيم (Anti-alias) للحصول على مظهر بكسلي حاد.
  */
-class PetRenderer(density: Float) {
-    /** معامل الدقة: يقسم حجم البكسل فتظهر تفاصيل أدق (بكسلات أصغر وأكثر). */
-    val RES = 2
-    val u = 3.5f * density / RES    // حجم الوحدة بالبكسل الفعلي (أنصف السابق → تفاصيل أدق)
+class PetRenderer(private val density: Float) {
+    /** معامل الدقة: يقسم حجم البكسل فتظهر تفاصيل أدق (بكسلات أصغر وأكثر). يتغير مع خيار الجودة. */
+    var res = 2f
+    val u get() = 3.5f * density / res   // حجم الوحدة بالبكسل الفعلي
     val boxW = 130f * density         // عرض مربع الشخصية
     val boxH = 128f * density         // ارتفاع مربع الشخصية
     val feetX = 70f * density
@@ -171,7 +171,7 @@ class PetRenderer(density: Float) {
         hairC = if (fem) Col.FHAIR else Col.HAIR
         c.save()
         c.translate(left + feetX, top + feetY)
-        c.scale(u * RES, u * RES)
+        c.scale(u * res, u * res)
 
         curDx = p.dx
         val legH = if (p.sit) 2.2f else 5f

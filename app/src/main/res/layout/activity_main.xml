@@ -276,6 +276,51 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
+                android:text="@string/quality_title"
+                android:textColor="@color/text_sub"
+                android:textSize="14sp" />
+
+            <RadioGroup
+                android:id="@+id/rgQuality"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/qb128"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:minHeight="48dp"
+                    android:text="@string/q128"
+                    android:textColor="@color/text_main"
+                    android:textSize="14sp" />
+
+                <RadioButton
+                    android:id="@+id/qb256"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:minHeight="48dp"
+                    android:text="@string/q256"
+                    android:textColor="@color/text_main"
+                    android:textSize="14sp" />
+
+                <RadioButton
+                    android:id="@+id/qb512"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:minHeight="48dp"
+                    android:text="@string/q512"
+                    android:textColor="@color/text_main"
+                    android:textSize="14sp" />
+            </RadioGroup>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
                 android:text="@string/speed_title"
                 android:textColor="@color/text_sub"
                 android:textSize="14sp" />

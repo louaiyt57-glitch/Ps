@@ -28,6 +28,10 @@
     <string name="hair_short">قصير</string>
     <string name="hair_braids">ضفائر</string>
     <string name="hair_long">طويل</string>
+    <string name="quality_title">دقة الشخصية (عدد البكسلات)</string>
+    <string name="q128">128 — خشن</string>
+    <string name="q256">256 — متوسط</string>
+    <string name="q512">512 — فائق التفاصيل</string>
     <string name="speed_slow">بطيئة</string>
     <string name="speed_normal">متوسطة</string>
     <string name="speed_fast">سريعة</string>

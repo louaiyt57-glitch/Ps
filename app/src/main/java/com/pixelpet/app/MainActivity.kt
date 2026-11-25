@@ -34,6 +34,7 @@ class MainActivity : Activity() {
     private lateinit var swScarf: Switch
     private lateinit var rgOutfit: RadioGroup
     private lateinit var rgHairstyle: RadioGroup
+    private lateinit var rgQuality: RadioGroup
 
     private val handler = Handler(Looper.getMainLooper())
     private val refresher = object : Runnable {
@@ -60,6 +61,7 @@ class MainActivity : Activity() {
         swScarf = findViewById(R.id.swScarf)
         rgOutfit = findViewById(R.id.rgOutfit)
         rgHairstyle = findViewById(R.id.rgHairstyle)
+        rgQuality = findViewById(R.id.rgQuality)
 
         applyInsets(findViewById(R.id.root))
 
@@ -113,6 +115,15 @@ class MainActivity : Activity() {
         rgHairstyle.setOnCheckedChangeListener { _, id ->
             Prefs.setHairstyle(this, when (id) {
                 R.id.hbBraids -> 1; R.id.hbLong -> 2; else -> 0
+            })
+        }
+
+        rgQuality.check(when (Prefs.quality(this)) {
+            Prefs.Q_128 -> R.id.qb128; Prefs.Q_512 -> R.id.qb512; else -> R.id.qb256
+        })
+        rgQuality.setOnCheckedChangeListener { _, id ->
+            Prefs.setQuality(this, when (id) {
+                R.id.qb128 -> Prefs.Q_128; R.id.qb512 -> Prefs.Q_512; else -> Prefs.Q_256
             })
         }
 

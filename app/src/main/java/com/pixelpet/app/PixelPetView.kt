@@ -42,6 +42,13 @@ class PixelPetView(context: Context) : View(context) {
     /** جنس الشخصية: 0 ذكر، 1 أنثى. */
     fun setGender(g: Int) { renderer.gender = g; invalidate() }
 
+    /** دقة الشخصية بالبكسل: 128 أو 256 أو 512 — كلما زادت صغرت البكسلات وزادت التفاصيل. */
+    fun setQuality(q: Int) {
+        renderer.res = q / 64f
+        smooth = false   // إعادة بناء الاستيفاء بعد تغيير الدقة
+        invalidate()
+    }
+
     /** متغيرات المظهر: نظارة، وشاح، ملابس (0-2)، تسريحة (0-2). */
     fun setLook(glassesOn: Boolean, scarfOn: Boolean, outfitIdx: Int, hairIdx: Int) {
         renderer.glasses = glassesOn
@@ -50,7 +57,9 @@ class PixelPetView(context: Context) : View(context) {
         renderer.hairstyle = hairIdx
         invalidate()
     }
-    private val pose = Pose()
+    private val pose = Pose()          // الوضعية المرسومة (بعد التنعيم)
+    private val rawPose = Pose()       // الوضعية المحسوبة مباشرة من الوقت
+    private var smooth = false         // هل there is وضعية سابقة للاستيفاء
     private val slop = ViewConfiguration.get(context).scaledTouchSlop
 
     // ───── الحالة ─────
@@ -160,7 +169,11 @@ class PixelPetView(context: Context) : View(context) {
     // ───── الرسم ─────
     override fun onDraw(canvas: Canvas) {
         val tMs = stateElapsedMs()
-        PetPose.compute(state, tMs, state.durationMs, pose)
+        PetPose.compute(state, tMs, state.durationMs, rawPose)
+        if (!smooth) { pose.setFrom(rawPose); smooth = true }
+        // تنعيم الحركة: مزج الوضعية نحو الهدف كل إطار (أسلس على الدقات العالية)
+        val alpha = if (renderer.res >= 4f) 0.45f else 0.6f
+        pose.lerpTo(rawPose, alpha)
         val clock = SystemClock.uptimeMillis() / 1000f
 
         var face = pose.face ?: faceOverride ?: state.face

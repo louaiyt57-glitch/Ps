@@ -15,6 +15,11 @@ object Prefs {
     private const val K_SCARF = "scarf"
     private const val K_OUTFIT = "outfit"
     private const val K_HAIRSTYLE = "hairstyle"
+    private const val K_QUALITY = "quality"
+
+    const val Q_128 = 128
+    const val Q_256 = 256
+    const val Q_512 = 512
 
     const val SPEED_SLOW = 0
     const val SPEED_NORMAL = 1
@@ -72,4 +77,8 @@ object Prefs {
     /** تسريحة الشعر: 0 قصير، 1 كيريّ/ضفائر، 2 طويل. */
     fun hairstyle(c: Context): Int = sp(c).getInt(K_HAIRSTYLE, 0)
     fun setHairstyle(c: Context, v: Int) = sp(c).edit().putInt(K_HAIRSTYLE, v).apply()
+
+    /** دقة الشخصية بالبكسل: 128 خشن، 256 متوسط (افتراضي)، 512 أدق تفصيلاً. */
+    fun quality(c: Context): Int = sp(c).getInt(K_QUALITY, Q_256)
+    fun setQuality(c: Context, v: Int) = sp(c).edit().putInt(K_QUALITY, v).apply()
 }

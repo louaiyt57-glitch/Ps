@@ -35,6 +35,31 @@ class Pose {
         squash = 1f; lieAmt = 0f; sit = false; face = null; side = false; swing = 0f
         chew = 0f; propT = 0f; blush = 0f
     }
+
+    /** ينسخ كل قيم وضعية أخرى إلى هذه. */
+    fun setFrom(o: Pose) {
+        dx = o.dx; dy = o.dy; lean = o.lean; headTilt = o.headTilt
+        look = o.look; lookY = o.lookY; armL = o.armL; armR = o.armR
+        legL = o.legL; legR = o.legR; legSpread = o.legSpread
+        side = o.side; swing = o.swing; squash = o.squash; lieAmt = o.lieAmt
+        sit = o.sit; face = o.face; chew = o.chew; propT = o.propT; blush = o.blush
+    }
+
+    /** استيفاء خطي نحو وضعية الهدف بمعامل a (0 = بلا حركة، 1 = القفز فوراً) — لأنيميشن أسلس. */
+    fun lerpTo(target: Pose, a: Float) {
+        dx += (target.dx - dx) * a; dy += (target.dy - dy) * a
+        lean += (target.lean - lean) * a; headTilt += (target.headTilt - headTilt) * a
+        look += (target.look - look) * a; lookY += (target.lookY - lookY) * a
+        armL += (target.armL - armL) * a; armR += (target.armR - armR) * a
+        legL += (target.legL - legL) * a; legR += (target.legR - legR) * a
+        legSpread += (target.legSpread - legSpread) * a
+        swing += (target.swing - swing) * a
+        squash += (target.squash - squash) * a
+        lieAmt += (target.lieAmt - lieAmt) * a
+        chew += (target.chew - chew) * a; propT += (target.propT - propT) * a
+        blush += (target.blush - blush) * a
+        side = target.side; sit = target.sit; face = target.face
+    }
 }
 
 object PetPose {

@@ -108,6 +108,7 @@ class FloatingPetService : Service(), PixelPetView.Listener {
         v.listener = this
         v.setGender(Prefs.gender(this))
         v.setLook(Prefs.glasses(this), Prefs.scarf(this), Prefs.outfit(this), Prefs.hairstyle(this))
+        v.setQuality(Prefs.quality(this))
         view = v
 
         params = WindowManager.LayoutParams(
