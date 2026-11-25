@@ -107,6 +107,7 @@ class FloatingPetService : Service(), PixelPetView.Listener {
         val v = PixelPetView(this)
         v.listener = this
         v.setGender(Prefs.gender(this))
+        v.setLook(Prefs.glasses(this), Prefs.scarf(this), Prefs.outfit(this), Prefs.hairstyle(this))
         view = v
 
         params = WindowManager.LayoutParams(
@@ -345,6 +346,7 @@ class FloatingPetService : Service(), PixelPetView.Listener {
         val v = view ?: return
         if (phase == Phase.STATE && v.state.isQuestion && !reacting) return   // لا نقاطع السؤال
         playHitSound()
+        view?.renderer?.hitStart = SystemClock.uptimeMillis()   // أداة الضرب تظهر وتضرب
         if (phase == Phase.STATE && v.state.sleeping) {
             startState(PetState.WAKE_SUDDEN)     // «هاه؟! لم أكن نائماً!»
         } else if (phase == Phase.STATE && lastState == PetState.ANGRY_CUTE && reacting) {

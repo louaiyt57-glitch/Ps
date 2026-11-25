@@ -37,10 +37,19 @@ class PixelPetView(context: Context) : View(context) {
     var listener: Listener? = null
 
     private val d = resources.displayMetrics.density
-    private val renderer = PetRenderer(d)
+    val renderer = PetRenderer(d)
 
     /** جنس الشخصية: 0 ذكر، 1 أنثى. */
     fun setGender(g: Int) { renderer.gender = g; invalidate() }
+
+    /** متغيرات المظهر: نظارة، وشاح، ملابس (0-2)، تسريحة (0-2). */
+    fun setLook(glassesOn: Boolean, scarfOn: Boolean, outfitIdx: Int, hairIdx: Int) {
+        renderer.glasses = glassesOn
+        renderer.scarf = scarfOn
+        renderer.outfit = outfitIdx
+        renderer.hairstyle = hairIdx
+        invalidate()
+    }
     private val pose = Pose()
     private val slop = ViewConfiguration.get(context).scaledTouchSlop
 

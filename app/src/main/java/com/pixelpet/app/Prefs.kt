@@ -11,6 +11,10 @@ object Prefs {
     private const val K_Y = "pos_y"
     private const val K_GENDER = "gender"
     private const val K_SOUND = "tap_sound"
+    private const val K_GLASSES = "glasses"
+    private const val K_SCARF = "scarf"
+    private const val K_OUTFIT = "outfit"
+    private const val K_HAIRSTYLE = "hairstyle"
 
     const val SPEED_SLOW = 0
     const val SPEED_NORMAL = 1
@@ -52,4 +56,20 @@ object Prefs {
     /** صوت الضربة عند النقر على الشخصية. */
     fun tapSound(c: Context): Boolean = sp(c).getBoolean(K_SOUND, true)
     fun setTapSound(c: Context, v: Boolean) = sp(c).edit().putBoolean(K_SOUND, v).apply()
+
+    /** النظارة: تُظهر أو تُخفي النظارات عن الشخصية. */
+    fun glasses(c: Context): Boolean = sp(c).getBoolean(K_GLASSES, true)
+    fun setGlasses(c: Context, v: Boolean) = sp(c).edit().putBoolean(K_GLASSES, v).apply()
+
+    /** الوشاح: يُضاف أو يُزال. */
+    fun scarf(c: Context): Boolean = sp(c).getBoolean(K_SCARF, true)
+    fun setScarf(c: Context, v: Boolean) = sp(c).edit().putBoolean(K_SCARF, v).apply()
+
+    /** الملابس: 0 كلاسيكي، 1 رياضي (هودي/فستان أزرق)، 2 رسمي (بدلة/فستان أخضر). */
+    fun outfit(c: Context): Int = sp(c).getInt(K_OUTFIT, 0)
+    fun setOutfit(c: Context, v: Int) = sp(c).edit().putInt(K_OUTFIT, v).apply()
+
+    /** تسريحة الشعر: 0 قصير، 1 كيريّ/ضفائر، 2 طويل. */
+    fun hairstyle(c: Context): Int = sp(c).getInt(K_HAIRSTYLE, 0)
+    fun setHairstyle(c: Context, v: Int) = sp(c).edit().putInt(K_HAIRSTYLE, v).apply()
 }

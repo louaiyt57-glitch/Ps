@@ -30,6 +30,10 @@ class MainActivity : Activity() {
     private lateinit var swSound: Switch
     private lateinit var rgSpeed: RadioGroup
     private lateinit var rgGender: RadioGroup
+    private lateinit var swGlasses: Switch
+    private lateinit var swScarf: Switch
+    private lateinit var rgOutfit: RadioGroup
+    private lateinit var rgHairstyle: RadioGroup
 
     private val handler = Handler(Looper.getMainLooper())
     private val refresher = object : Runnable {
@@ -52,6 +56,10 @@ class MainActivity : Activity() {
         swSound = findViewById(R.id.swSound)
         rgSpeed = findViewById(R.id.rgSpeed)
         rgGender = findViewById(R.id.rgGender)
+        swGlasses = findViewById(R.id.swGlasses)
+        swScarf = findViewById(R.id.swScarf)
+        rgOutfit = findViewById(R.id.rgOutfit)
+        rgHairstyle = findViewById(R.id.rgHairstyle)
 
         applyInsets(findViewById(R.id.root))
 
@@ -82,6 +90,30 @@ class MainActivity : Activity() {
         rgGender.check(if (Prefs.gender(this) == Prefs.GENDER_FEMALE) R.id.rbFemale else R.id.rbMale)
         rgGender.setOnCheckedChangeListener { _, id ->
             Prefs.setGender(this, if (id == R.id.rbFemale) Prefs.GENDER_FEMALE else Prefs.GENDER_MALE)
+        }
+
+        swGlasses.isChecked = Prefs.glasses(this)
+        swGlasses.setOnCheckedChangeListener { _, checked -> Prefs.setGlasses(this, checked) }
+
+        swScarf.isChecked = Prefs.scarf(this)
+        swScarf.setOnCheckedChangeListener { _, checked -> Prefs.setScarf(this, checked) }
+
+        rgOutfit.check(when (Prefs.outfit(this)) {
+            1 -> R.id.obSporty; 2 -> R.id.obFormal; else -> R.id.obClassic
+        })
+        rgOutfit.setOnCheckedChangeListener { _, id ->
+            Prefs.setOutfit(this, when (id) {
+                R.id.obSporty -> 1; R.id.obFormal -> 2; else -> 0
+            })
+        }
+
+        rgHairstyle.check(when (Prefs.hairstyle(this)) {
+            1 -> R.id.hbBraids; 2 -> R.id.hbLong; else -> R.id.hbShort
+        })
+        rgHairstyle.setOnCheckedChangeListener { _, id ->
+            Prefs.setHairstyle(this, when (id) {
+                R.id.hbBraids -> 1; R.id.hbLong -> 2; else -> 0
+            })
         }
 
         rgSpeed.check(

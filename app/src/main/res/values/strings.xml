@@ -18,6 +18,16 @@
     <string name="gender_title">شكل الشخصية</string>
     <string name="gender_male">ذكر</string>
     <string name="gender_female">أنثى</string>
+    <string name="glasses">النظارة (إضافة/إزالة)</string>
+    <string name="scarf">الوشاح (إضافة/إزالة)</string>
+    <string name="outfit_title">الملابس</string>
+    <string name="outfit_classic">كلاسيكي</string>
+    <string name="outfit_sporty">رياضي</string>
+    <string name="outfit_formal">رسمي</string>
+    <string name="hairstyle_title">تسريحة الشعر</string>
+    <string name="hair_short">قصير</string>
+    <string name="hair_braids">ضفائر</string>
+    <string name="hair_long">طويل</string>
     <string name="speed_slow">بطيئة</string>
     <string name="speed_normal">متوسطة</string>
     <string name="speed_fast">سريعة</string>

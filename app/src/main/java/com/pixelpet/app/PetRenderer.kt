@@ -4,6 +4,8 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Typeface
+import android.os.SystemClock
+import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.floor
 import kotlin.math.max
@@ -36,6 +38,22 @@ object Col {
     val FSCARF = Color.parseColor("#E8A0B4")
     val FSCARF_D = Color.parseColor("#C97A94")
     val BOW = Color.parseColor("#E85A8A")
+    // ملابس إضافية (رياضية ورسمية للذكر، وألوان فساتين للأنثى)
+    val HOODIE = Color.parseColor("#3E6FB8")
+    val HOODIE_D = Color.parseColor("#2C4E85")
+    val SUIT = Color.parseColor("#4A4E58")
+    val SUIT_D = Color.parseColor("#33363E")
+    val FDR2 = Color.parseColor("#5B7FD4")
+    val FDR2_D = Color.parseColor("#3E5CA8")
+    val FDR3 = Color.parseColor("#4FA070")
+    val FDR3_D = Color.parseColor("#377550")
+    val SOLE = Color.parseColor("#BFBFBF")
+    val SHINE = Color.parseColor("#FFFFFF")
+    val BELT = Color.parseColor("#241A12")
+    val BUCKLE = Color.parseColor("#D9B44A")
+    // إطار النظارة ودرجاتها
+    val FRAME = Color.parseColor("#2B2B2B")
+    val STICK = Color.parseColor("#E8C56A")
 }
 
 /**
@@ -43,7 +61,9 @@ object Col {
  * كل المستطيلات بلا تنعيم (Anti-alias) للحصول على مظهر بكسلي حاد.
  */
 class PetRenderer(density: Float) {
-    val u = 3.5f * density            // حجم الوحدة بالبكسل الفعلي
+    /** معامل الدقة: يقسم حجم البكسل فتظهر تفاصيل أدق (بكسلات أصغر وأكثر). */
+    val RES = 2
+    val u = 3.5f * density / RES    // حجم الوحدة بالبكسل الفعلي (أنصف السابق → تفاصيل أدق)
     val boxW = 130f * density         // عرض مربع الشخصية
     val boxH = 128f * density         // ارتفاع مربع الشخصية
     val feetX = 70f * density
@@ -65,8 +85,32 @@ class PetRenderer(density: Float) {
     var curDx = 0f
     /** 0 = ذكر (الافتراضي)، 1 = أنثى */
     var gender = 0
+    /** إظهار النظارة */
+    var glasses = true
+    /** إظهار الوشاح */
+    var scarf = true
+    /** الملابس: 0 كلاسيكي، 1 رياضي، 2 رسمي */
+    var outfit = 0
+    /** تسريحة الشعر: 0 قصير، 1 كيريّ/ضفائر، 2 طويل */
+    var hairstyle = 0
+    /** لحظة بدء أنيميشن الضرب (uptimeMillis) أو -1 */
+    var hitStart = -1L
     private var hairC = Col.HAIR
     private val fem get() = gender == 1
+
+    /** لونا ملابس الجسم حسب الجنس والمظهر المختار. */
+    private fun outfitColors(): Pair<Int, Int> = when {
+        fem -> when (outfit) {
+            1 -> Col.FDR2 to Col.FDR2_D
+            2 -> Col.FDR3 to Col.FDR3_D
+            else -> Col.DRESS to Col.DRESS_D
+        }
+        else -> when (outfit) {
+            1 -> Col.HOODIE to Col.HOODIE_D
+            2 -> Col.SUIT to Col.SUIT_D
+            else -> Col.COAT to Col.COAT_D
+        }
+    }
 
     private val props = PropPainter(this)
     private val fx = FxPainter(this)
@@ -125,7 +169,7 @@ class PetRenderer(density: Float) {
         hairC = if (fem) Col.FHAIR else Col.HAIR
         c.save()
         c.translate(left + feetX, top + feetY)
-        c.scale(u, u)
+        c.scale(u * RES, u * RES)
 
         curDx = p.dx
         val legH = if (p.sit) 2.2f else 5f
@@ -180,9 +224,8 @@ class PetRenderer(density: Float) {
             legFront(-3.7f - p.legSpread, p.legL, legH, legC)
             legFront(0.7f + p.legSpread, p.legR, legH, legC)
 
-            val bodyC = if (fem) Col.DRESS else Col.COAT
-            val bodyD = if (fem) Col.DRESS_D else Col.COAT_D
-            val btn = if (fem) Col.DRESS_D else Col.HAIR
+            val (bodyC, bodyD) = outfitColors()
+            val btn = if (fem) outfitColors().second else Col.HAIR
             val scC = if (fem) Col.FSCARF else Col.SCARF
             val scD = if (fem) Col.FSCARF_D else Col.SCARF_D
 
@@ -197,18 +240,32 @@ class PetRenderer(density: Float) {
                 // تنورة أعرض أسفل الفستان
                 rect(-5.6f, bb - 1.6f, 5.6f, bb, bodyC)
                 rect(-5.6f, bb - 0.8f, 5.6f, bb, bodyD)
+                // زخرفة حواف الفستان (نصف وحدة)
+                var hx = -5.4f
+                while (hx < 5.2f) {
+                    rect(hx, bb - 0.7f, hx + 0.5f, bb - 0.2f, Col.SHINE, 130)
+                    hx += 1.4f
+                }
             } else {
                 rect(-4.4f, bb - 0.8f, 4.4f, bb, bodyD)
+                // حزام بزمرد ذهبي
+                rect(-4f, bb - 2.6f, 4f, bb - 1.6f, Col.BELT)
+                rect(-0.8f, bb - 2.8f, 0.8f, bb - 1.4f, Col.BUCKLE)
             }
+            // طوق القميص (تفصيل نصف وحدة)
+            rect(-1.8f, neck - 0.3f, -0.2f, neck + 0.5f, if (fem) Col.WHITE else Col.SOLE)
+            rect(0.2f, neck - 0.3f, 1.8f, neck + 0.5f, if (fem) Col.WHITE else Col.SOLE)
 
-            rect(-4.6f, neck - 1.3f, 4.6f, neck + 1.5f, scC)
-            rect(-4.6f, neck + 0.9f, 4.6f, neck + 1.5f, scD)
-            if (fem) {
-                // فيونكة على الوشاح
-                rect(-1.6f, neck + 0.2f, -0.4f, neck + 1.4f, Col.BOW)
-            } else {
-                rect(0.6f + sw, neck + 1.5f, 3.2f + sw, neck + 6.5f, scC)
-                rect(0.6f + sw, neck + 5.6f, 3.2f + sw, neck + 6.5f, scD)
+            if (scarf) {
+                rect(-4.6f, neck - 1.3f, 4.6f, neck + 1.5f, scC)
+                rect(-4.6f, neck + 0.9f, 4.6f, neck + 1.5f, scD)
+                if (fem) {
+                    // فيونكة على الوشاح
+                    rect(-1.6f, neck + 0.2f, -0.4f, neck + 1.4f, Col.BOW)
+                } else {
+                    rect(0.6f + sw, neck + 1.5f, 3.2f + sw, neck + 6.5f, scC)
+                    rect(0.6f + sw, neck + 5.6f, 3.2f + sw, neck + 6.5f, scD)
+                }
             }
 
             c.save()
@@ -226,9 +283,8 @@ class PetRenderer(density: Float) {
             legSide(-p.swing, p.legR, legH, if (fem) Col.SKIN_D else Col.PANTS_D)  // الرجل الخلفية أغمق
             legSide(p.swing, p.legL, legH, if (fem) Col.SKIN else Col.PANTS)
 
-            val bodyC = if (fem) Col.DRESS else Col.COAT
-            val bodyD = if (fem) Col.DRESS_D else Col.COAT_D
-            val btn = if (fem) Col.DRESS_D else Col.HAIR
+            val (bodyC, bodyD) = outfitColors()
+            val btn = if (fem) outfitColors().second else Col.HAIR
             val scC = if (fem) Col.FSCARF else Col.SCARF
             val scD = if (fem) Col.FSCARF_D else Col.SCARF_D
 
@@ -240,16 +296,25 @@ class PetRenderer(density: Float) {
             rect(1.6f, neck + 1.4f, 2.2f, bb, btn)
             rect(2.2f, neck + 3.5f, 2.9f, neck + 4.2f, btn)
             rect(2.2f, neck + 5.5f, 2.9f, neck + 6.2f, btn)
+            if (!fem) {
+                // حزام بزمرد ذهبي
+                rect(-3.2f, bb - 2.6f, 3.2f, bb - 1.6f, Col.BELT)
+                rect(-0.7f, bb - 2.8f, 0.7f, bb - 1.4f, Col.BUCKLE)
+            }
+            // طوق القميص من الجانب (نصف وحدة)
+            rect(1.9f, neck - 0.3f, 3.2f, neck + 0.5f, if (fem) Col.WHITE else Col.SOLE)
 
             // الوشاح: طوق + ذيل يرفرف للخلف (أطول عند الركض)
             val speed = (kotlin.math.abs(p.swing) / 3.8f).coerceIn(0f, 1f)
             val tail = 3f + speed * 3f
             val fl = sin(t * 9f) * 0.5f * (0.4f + speed)
-            rect(-3.8f, neck - 1.3f, 3.8f, neck + 1.5f, scC)
-            rect(-3.8f, neck + 0.9f, 3.8f, neck + 1.5f, scD)
-            if (!fem) {
-                rect(-3.8f - tail, neck + 0.6f + fl, -3.4f, neck + 2.4f + fl, scC)
-                rect(-3.8f - tail, neck + 1.8f + fl, -3.4f, neck + 2.4f + fl, scD)
+            if (scarf) {
+                rect(-3.8f, neck - 1.3f, 3.8f, neck + 1.5f, scC)
+                rect(-3.8f, neck + 0.9f, 3.8f, neck + 1.5f, scD)
+                if (!fem) {
+                    rect(-3.8f - tail, neck + 0.6f + fl, -3.4f, neck + 2.4f + fl, scC)
+                    rect(-3.8f - tail, neck + 1.8f + fl, -3.4f, neck + 2.4f + fl, scD)
+                }
             }
 
             c.save()
@@ -275,6 +340,33 @@ class PetRenderer(density: Float) {
         lhX = p.dx + facing * rLx; lhY = p.dy + rLy
         rhX = p.dx + facing * rRx; rhY = p.dy + rRy
 
+        // أداة الضرب: عصا تظهر عند اللمس وتضرب الشخصية
+        if (hitStart >= 0) {
+            val el = (SystemClock.uptimeMillis() - hitStart) / 400f
+            if (el < 1f) {
+                // العصا تهبط من فوق نحو الرأس
+                val ang = -140f + el * 90f
+                val hx = 0f
+                val hy = -22f + el * 14f
+                c.save()
+                c.translate(hx, hy)
+                c.rotate(ang)
+                rect(-0.4f, -1f, 0.4f, 14f, Col.BELT)         // مقبض
+                rect(-1.6f, -3.2f, 1.6f, -0.6f, Col.SOLE)     // رأس العصا
+                rect(-1.6f, -3.2f, 1.6f, -2.4f, Col.SHINE, 90)
+                c.restore()
+                if (el > 0.55f) {
+                    // نجوم الارتطام حول الرأس
+                    for (i in 0..3) {
+                        val sa = t * 6f + i * PI.toFloat() / 2f
+                        val sx = sin(sa) * 7f
+                        val syy = -14f + cos(sa) * 2f
+                        rect(sx - 0.5f, syy - 0.5f, sx + 0.5f, syy + 0.5f, Col.STICK)
+                    }
+                }
+            } else hitStart = -1L
+        }
+
         props.drawHeld(st.prop, rRx, rRy, rLx, rLy, p, t)
     }
 
@@ -282,8 +374,9 @@ class PetRenderer(density: Float) {
         c.save()
         c.translate(sx, sy)
         c.rotate(if (mirror) -angle else angle)
-        rect(-1f, -0.8f, 1f, 5.2f, if (fem) Col.DRESS else Col.COAT)
-        rect(-1f, 4.4f, 1f, 5.2f, if (fem) Col.DRESS_D else Col.COAT_D)
+        val (ac, ad) = outfitColors()
+        rect(-1f, -0.8f, 1f, 5.2f, ac)
+        rect(-1f, 4.4f, 1f, 5.2f, ad)
         rect(-1f, 5.2f, 1f, 7.2f, Col.SKIN)
         c.restore()
     }
@@ -293,13 +386,14 @@ class PetRenderer(density: Float) {
         c.save()
         c.translate(0f, sy)
         c.rotate(-angle)
-        rect(-1f, -0.8f, 1f, 5.2f, if (near) (if (fem) Col.DRESS else Col.COAT) else (if (fem) Col.DRESS_D else Col.COAT_D))
-        rect(-1f, 4.4f, 1f, 5.2f, if (near) (if (fem) Col.DRESS_D else Col.COAT_D) else hairC)
+        val (ac, ad) = outfitColors()
+        rect(-1f, -0.8f, 1f, 5.2f, if (near) ac else ad)
+        rect(-1f, 4.4f, 1f, 5.2f, if (near) ad else hairC)
         rect(-1f, 5.2f, 1f, 7.2f, if (near) Col.SKIN else Col.SKIN_D)
         c.restore()
     }
 
-    // ───── الرأس الأمامي: شعر داكن، نظارات صغيرة، لحية (كما في الصور المرجعية) ─────
+    // ───── الرأس الأمامي: شعر داكن، نظارات اختيارية، لحية (للذكر) ─────
     private fun headFront(p: Pose, face: Face, t: Float) {
         rect(-4f, -9.8f, 4f, -1f, Col.SKIN)
         rect(-4f, -1.8f, 4f, -1f, Col.SKIN_D)
@@ -307,13 +401,50 @@ class PetRenderer(density: Float) {
         rect(-4.6f, -8.4f, -3.6f, -4.6f, hairC)
         rect(3.6f, -8.4f, 4.6f, -4.6f, hairC)
         if (fem) {
-            // شعر طويل على الجانبين + غرة
+            // تفاصيل شعر أنثوية حسب التسريحة المختارة
             rect(-5.2f, -11.6f, -4.0f, -1.2f, hairC)
             rect(4.0f, -11.6f, 5.2f, -1.2f, hairC)
             rect(-4.6f, -9.8f, 4.6f, -8.6f, hairC)
+            when (hairstyle) {
+                1 -> {
+                    // ضفائر بفيونكتين على الجانبين
+                    rect(-6.4f, -8.6f, -5.0f, -5.4f, hairC)
+                    rect(5.0f, -8.6f, 6.4f, -5.4f, hairC)
+                    rect(-6.2f, -6.2f, -5.2f, -5.2f, Col.BOW)
+                    rect(5.2f, -6.2f, 6.2f, -5.2f, Col.BOW)
+                }
+                2 -> {
+                    // ذيلان سفليان طويلان
+                    rect(-5.9f, -2f, -4.9f, 1.6f, hairC)
+                    rect(4.9f, -2f, 5.9f, 1.6f, hairC)
+                    rect(-5.6f, -2.3f, -5.2f, -1.6f, Col.BOW)
+                    rect(5.2f, -2.3f, 5.6f, -1.6f, Col.BOW)
+                }
+                else -> {
+                    // قصير كلاسيكي بغرة مسننة
+                    var gx = -4.2f
+                    while (gx < 4f) {
+                        rect(gx, -8.6f, gx + 0.55f, -7.9f, hairC)
+                        gx += 1.1f
+                    }
+                }
+            }
+            // لمعان الشعر (تفصيل نصف وحدة)
+            rect(-3.9f, -11.7f, -3.4f, -10.6f, Col.SHINE, 90)
             // فيونكة على الرأس
             rect(2.4f, -12.6f, 4.4f, -11.6f, Col.BOW)
             rect(3.2f, -12.9f, 3.7f, -11.3f, Col.BOW)
+        } else {
+            when (hairstyle) {
+                1 -> { // شعر كيريّ أعلى الرأس
+                    rect(-4.2f, -13.2f, 4.2f, -11.4f, hairC)
+                    rect(-3.4f, -13.8f, 3.4f, -12.6f, hairC)
+                }
+                2 -> { // شعر طويل خلف الرقبة
+                    rect(-4.2f, -11.6f, -3.6f, -5f, hairC)
+                    rect(3.6f, -11.6f, 4.2f, -5f, hairC)
+                }
+            }
         }
 
         val ey = -5.7f
@@ -322,6 +453,19 @@ class PetRenderer(density: Float) {
         eyeFront(2f, ey, face, blink, p)
         rect(-0.5f, ey - 0.3f, 0.5f, ey + 0.2f, hairC)
         browsFront(face, ey)
+        if (glasses) {
+            // نظارات كاملة: إطاران ودرجات زرقاء وذراعان (بدقة نصف وحدة)
+            rect(-3.1f, ey - 1.5f, -0.9f, ey + 1.5f, Col.FRAME)
+            rect(-2.85f, ey - 1.25f, -1.15f, ey + 1.25f, Col.LENS, 160)
+            rect(0.9f, ey - 1.5f, 3.1f, ey + 1.5f, Col.FRAME)
+            rect(1.15f, ey - 1.25f, 2.85f, ey + 1.25f, Col.LENS, 160)
+            rect(-0.4f, ey - 0.12f, 0.4f, ey + 0.12f, Col.FRAME)
+            rect(-4.6f, ey - 0.35f, -3.1f, ey + 0.1f, Col.FRAME)
+            rect(3.1f, ey - 0.35f, 4.6f, ey + 0.1f, Col.FRAME)
+            // وميض العدسات
+            rect(-2.6f, ey - 1.1f, -2.1f, ey - 0.4f, Col.SHINE, 110)
+            rect(1.4f, ey - 1.1f, 1.9f, ey - 0.4f, Col.SHINE, 110)
+        }
 
         val b = if (face == Face.SHY) max(p.blush, 0.9f) else p.blush
         if (b > 0f && face != Face.ANGRY) {
@@ -428,23 +572,45 @@ class PetRenderer(density: Float) {
         rect(-4.6f, -8.4f, -1.6f, -3.2f, hairC)                // شعر الخلف
         rect(2.6f, -8.4f, 4.2f, -7.7f, hairC)                  // الغرة
         if (fem) {
-            // شعر طويل خلفي + ذيل حصان
+            // شعر خلفي حسب التسريحة
             rect(-6.4f, -11.8f, -4.4f, -2f, hairC)
             val fl = sin(t * 3f) * 0.5f
-            rect(-7.6f, -11.4f + fl, -6.2f, -6f + fl, hairC)
+            when (hairstyle) {
+                1 -> { // ضفائر أمامية قصيرة
+                    rect(-5.6f, -9.5f, -4.4f, -6f, hairC)
+                    rect(4.4f, -9.5f, 5.6f, -6f, hairC)
+                }
+                2 -> { // ذيل حصان طويل يرفرف
+                    rect(-7.8f, -11.4f + fl, -6.2f, -5.2f + fl, hairC)
+                    rect(-7.5f, -11.7f + fl, -6.4f, -10.9f + fl, Col.BOW)
+                }
+                else -> rect(-7.6f, -11.4f + fl, -6.2f, -6f + fl, hairC)
+            }
             rect(2.4f, -12.6f, 4.4f, -11.6f, Col.BOW)
             rect(3.2f, -12.9f, 3.7f, -11.3f, Col.BOW)
+        } else {
+            when (hairstyle) {
+                1 -> rect(-4.2f, -13.4f, 4.2f, -11.8f, hairC)   // كيريّ من الجانب
+                2 -> { // طويل خلفي
+                    rect(-6.6f, -11.6f, -4.6f, -4f, hairC)
+                    rect(-5.4f, -4.2f, -4.2f, -1.4f, hairC)
+                }
+            }
         }
 
         val ey = -5.7f
         val blink = face == Face.NORMAL && (t % 3.4f) < 0.12f
-        if (!fem) rect(-3.5f, ey - 0.25f, 1.2f, ey + 0.25f, hairC)   // ذراع النظارة
+        if (glasses) rect(-3.5f, ey - 0.25f, 1.2f, ey + 0.25f, Col.FRAME)   // ذراع النظارة
         val x0 = 1.1f
         var x1 = 4.4f
         var y0 = ey - 1.3f
         var y1 = ey + 1.3f
         if (face == Face.SURPRISED) { x1 += 0.3f; y0 -= 0.3f; y1 += 0.3f }
         rect(x0, y0, x1, y1, hairC)
+        if (glasses) {
+            rect(x0 + 0.25f, y0 + 0.25f, x1 - 0.25f, y1 - 0.25f, Col.LENS, 160)
+            rect(4.55f, ey - 0.5f, 5.05f, ey + 0.9f, Col.FRAME)   // إطار العدسة الأمامي
+        }
         val dn = if (face == Face.SAD) 0.3f else 0f
         when {
             blink || face == Face.CLOSED || face == Face.YAWN -> {

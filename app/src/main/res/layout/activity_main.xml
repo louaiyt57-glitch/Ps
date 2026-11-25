@@ -164,6 +164,114 @@
                     android:textSize="15sp" />
             </RadioGroup>
 
+            <Switch
+                android:id="@+id/swGlasses"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp"
+                android:text="@string/glasses"
+                android:textColor="@color/text_main"
+                android:textSize="16sp" />
+
+            <Switch
+                android:id="@+id/swScarf"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp"
+                android:text="@string/scarf"
+                android:textColor="@color/text_main"
+                android:textSize="16sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="@string/outfit_title"
+                android:textColor="@color/text_sub"
+                android:textSize="14sp" />
+
+            <RadioGroup
+                android:id="@+id/rgOutfit"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/obClassic"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:minHeight="48dp"
+                    android:text="@string/outfit_classic"
+                    android:textColor="@color/text_main"
+                    android:textSize="14sp" />
+
+                <RadioButton
+                    android:id="@+id/obSporty"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:minHeight="48dp"
+                    android:text="@string/outfit_sporty"
+                    android:textColor="@color/text_main"
+                    android:textSize="14sp" />
+
+                <RadioButton
+                    android:id="@+id/obFormal"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:minHeight="48dp"
+                    android:text="@string/outfit_formal"
+                    android:textColor="@color/text_main"
+                    android:textSize="14sp" />
+            </RadioGroup>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="@string/hairstyle_title"
+                android:textColor="@color/text_sub"
+                android:textSize="14sp" />
+
+            <RadioGroup
+                android:id="@+id/rgHairstyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/hbShort"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:minHeight="48dp"
+                    android:text="@string/hair_short"
+                    android:textColor="@color/text_main"
+                    android:textSize="14sp" />
+
+                <RadioButton
+                    android:id="@+id/hbBraids"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:minHeight="48dp"
+                    android:text="@string/hair_braids"
+                    android:textColor="@color/text_main"
+                    android:textSize="14sp" />
+
+                <RadioButton
+                    android:id="@+id/hbLong"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:minHeight="48dp"
+                    android:text="@string/hair_long"
+                    android:textColor="@color/text_main"
+                    android:textSize="14sp" />
+            </RadioGroup>
+
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
