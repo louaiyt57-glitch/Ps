@@ -160,6 +160,19 @@ class PropPainter(private val r: PetRenderer) {
                 r.rect(rx - 0.25f, ry - 0.2f, rx + 0.25f, ry + 3.2f + tap, GRAY)
             }
             Prop.SNOWBALL_SMALL -> if (p.propT == 0f) r.disc(rx, ry - 1f, 1.4f, Col.SNOW)
+            Prop.PILLOW -> {
+                r.rect(mx - 4.4f, my - 3.4f, mx + 4.4f, my + 2.4f, Color.parseColor("#F9D5E5"))
+                r.rect(mx - 4.4f, my + 1.6f, mx + 4.4f, my + 2.4f, Color.parseColor("#E5A9C4"))
+                r.rect(mx - 3.4f, my - 2.2f, mx - 1.4f, my - 1.6f, Col.WHITE)
+                r.rect(mx + 0.4f, my - 0.8f, mx + 2.8f, my - 0.2f, Col.WHITE)
+            }
+            Prop.FAN -> {
+                r.rect(rx - 0.3f, ry - 1.2f, rx + 0.3f, ry + 0.6f, STICK)
+                for (k in 0..3) {
+                    val hwk = 1.0f + k * 1.1f
+                    r.rect(rx - hwk, ry - 2.4f - k * 1.0f, rx + hwk, ry - 1.4f - k * 1.0f, if (k % 2 == 0) RED else Col.WHITE)
+                }
+            }
             Prop.UMBRELLA -> umbrella(rx, ry, t)
             else -> Unit
         }

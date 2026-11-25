@@ -20,6 +20,10 @@ class Pose {
     var legSpread = 0f                  // تباعد الرجلين
     var side = false                    // true = منظر جانبي (للمشي والركض)
     var swing = 0f                      // تأرجح الرجلين للأمام/الخلف في المنظر الجانبي
+    var hairSwing = 0f                  // تمايل الشعر (إزاحة أفقية للخصلات)
+    var hoodUp = 0f                     // قلنسوة الهودي: 0 = مطوية، 1 = مرفوعة على الرأس
+    var spin = 0f                       // دوران حول المحور الرأسي بالدرجات (للفستان)
+    var flare = 0f                      // اتساع التنورة/الفستان 0..1
     var squash = 1f                     // انضغاط الجسم رأسياً
     var lieAmt = 0f                     // 0 = واقف ... 1 = مستلقٍ على السرير
     var sit = false                     // جلوس
@@ -31,7 +35,7 @@ class Pose {
     fun reset() {
         dx = 0f; dy = 0f; lean = 0f; headTilt = 0f; look = 0f; lookY = 0f
         armL = 0f; armR = 0f; legL = 0f; legR = 0f; legSpread = 0f
-        squash = 1f; lieAmt = 0f; sit = false; face = null; side = false; swing = 0f
+        squash = 1f; lieAmt = 0f; sit = false; face = null; side = false; swing = 0f; hairSwing = 0f; hoodUp = 0f; spin = 0f; flare = 0f
         chew = 0f; propT = 0f; blush = 0f
     }
 }
@@ -39,7 +43,7 @@ class Pose {
 object PetPose {
     private const val HOLD = -52f   // وضع حمل الأغراض أمام الصدر
 
-    private fun kf(t: Float, vararg k: Pair<Float, Float>): Float {
+    internal fun kf(t: Float, vararg k: Pair<Float, Float>): Float {
         if (t <= k.first().first) return k.first().second
         for (i in 1 until k.size) {
             val (t1, v1) = k[i]
@@ -51,7 +55,7 @@ object PetPose {
         return k.last().second
     }
 
-    private fun smooth(x: Float): Float { val c = x.coerceIn(0f, 1f); return c * c * (3 - 2 * c) }
+    internal fun smooth(x: Float): Float { val c = x.coerceIn(0f, 1f); return c * c * (3 - 2 * c) }
 
     /** يملأ [p] بوضعية الحالة [s] عند الزمن [tMs] من بدايتها. */
     fun compute(s: PetState, tMs: Long, durMs: Long, p: Pose) {
@@ -60,7 +64,9 @@ object PetPose {
         val prog = (tMs.toFloat() / durMs).coerceIn(0f, 1f)
         p.side = s.motion != Motion.NONE   // أي حركة تنقل = منظر جانبي
 
-        when (s.anim) {
+        val mv = s.move
+        if (mv != null) mv(t, prog, p) else when (s.anim) {
+            Anim.CUSTOM -> Unit
             // ───── المشي والتنقل ─────
             Anim.WALK -> {
                 val w = sin(t * 6f)

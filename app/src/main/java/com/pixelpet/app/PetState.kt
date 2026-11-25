@@ -10,7 +10,7 @@ enum class Motion { NONE, WALK, RUN, SNEAK, ROLL, EDGE }
 
 /** الأغراض (Props) التي تُرسم بجانب الشخصية أو في يدها */
 enum class Prop {
-    NONE, BED, LAPTOP, SNOWMAN, BOOK, NOTEBOOK, PHONE, SCREWDRIVER,
+    NONE, PILLOW, FAN, BED, LAPTOP, SNOWMAN, BOOK, NOTEBOOK, PHONE, SCREWDRIVER,
     SNOWBALL_BIG, SNOWBALL_SMALL, UMBRELLA, COFFEE, TEA, PIZZA, APPLE
 }
 
@@ -19,6 +19,7 @@ enum class Fx { NONE, ZZZ, HEARTS, STARS, STEAM, TEAR, QMARK, EXCL, NOTES, SNOW,
 
 /** مفاتيح الرسوم المتحركة (يحسبها PetPose) */
 enum class Anim {
+    CUSTOM,   // الحركة تأتي من دالة move الخاصة بالحالة (انظر Actions.kt)
     WALK, RUN, SNEAK, JUMP, WAVE, LOOK, TRIP, CLIMB,
     YAWN, SLEEP, WAKE_JUMP, STRETCH, DROWSY, SLEEP_SHIVER, SIT_BED,
     TYPE, THINK, IDEA, READ, WRITE, PHONE, HAMMER, CHEER, SLUMP,
@@ -35,7 +36,9 @@ enum class Category(val arabic: String) {
     WINTER("الشتاء والثلج"),
     FOOD("الطعام والشراب"),
     EMOTION("المشاعر والتعبيرات"),
-    FUN("أسئلة وأنشطة مرحة")
+    FUN("أسئلة وأنشطة مرحة"),
+    HAIR("حركات التسريحات"),
+    OUTFIT("حركات الملابس")
 }
 
 /** سؤال نعم / لا مع رد فعل مختلف لكل زر */
@@ -60,7 +63,13 @@ enum class PetState(
     val durationMs: Long = 5000,
     val bubble: Boolean = true,
     val sleeping: Boolean = false,
-    val question: Question? = null
+    val question: Question? = null,
+    /** دالة حركة مخصصة (t بالثواني، prog 0..1، الوضعية). تتجاوز anim عند وجودها. */
+    val move: ((Float, Float, Pose) -> Unit)? = null,
+    /** حالة خاصة بتسريحة معيّنة: لا تظهر إلا إذا اختارها المستخدم. */
+    val forHair: HairStyle? = null,
+    /** حالة خاصة بزي معيّن: لا تظهر إلا إذا ارتداه المستخدم. */
+    val forOutfit: Outfit? = null
 ) {
     // ───── أولاً: المشي والتنقل (1 – 8) ─────
     WALK_NORMAL(1, Category.MOVE, "أتمشى قليلاً في شاشتك...", Anim.WALK, motion = Motion.WALK, durationMs = 8000),
@@ -130,9 +139,53 @@ enum class PetState(
         question = Question("ممتاز! استمر!", Face.HAPPY, "اشرب كوب ماء الآن!", Face.SURPRISED)),
     DANCE(48, Category.FUN, "وقت الرقص والموسيقى!", Anim.DANCE, face = Face.HAPPY, fx = Fx.NOTES, durationMs = 6500),
     EXERCISE(49, Category.FUN, "واحد، اثنان... حافظ على لياقتك!", Anim.EXERCISE, face = Face.HAPPY, fx = Fx.SWEAT, durationMs = 6500),
-    GOODBYE(50, Category.FUN, "أراك لاحقاً يا بطل!", Anim.WAVE_SOFT, face = Face.HAPPY, durationMs = 4500);
+    GOODBYE(50, Category.FUN, "أراك لاحقاً يا بطل!", Anim.WAVE_SOFT, face = Face.HAPPY, durationMs = 4500),
+
+    // ───── ثامناً: حركة خاصة لكل تسريحة (51 – 58) ─────
+    HAIR_SHORT(51, Category.HAIR, "شعري مرتب اليوم... أو ربما لا!", Anim.CUSTOM, durationMs = 5000,
+        move = Actions::hairRuffle, forHair = HairStyle.SHORT),
+    HAIR_LONG(52, Category.HAIR, "شعري ينساب كالحرير!", Anim.CUSTOM, fx = Fx.STARS, durationMs = 5600,
+        move = Actions::hairFlip, forHair = HairStyle.LONG),
+    HAIR_PONYTAIL(53, Category.HAIR, "ذيل الحصان يرقص معي!", Anim.CUSTOM, durationMs = 5000,
+        move = Actions::ponyHop, forHair = HairStyle.PONYTAIL),
+    HAIR_BRAID(54, Category.HAIR, "ضفيرتي جميلة اليوم...", Anim.CUSTOM, fx = Fx.HEARTS, durationMs = 5500,
+        move = Actions::braidTwirl, forHair = HairStyle.BRAID),
+    HAIR_BUN(55, Category.HAIR, "أثبّت الكعكة قبل الخروج.", Anim.CUSTOM, durationMs = 5000,
+        move = Actions::bunAdjust, forHair = HairStyle.BUN),
+    HAIR_CURLY(56, Category.HAIR, "شعري يقفز معي! بوينغ!", Anim.CUSTOM, durationMs = 5000,
+        move = Actions::curlyBounce, forHair = HairStyle.CURLY),
+    HAIR_MOHAWK(57, Category.HAIR, "روك آند رول!", Anim.CUSTOM, fx = Fx.NOTES, durationMs = 5500,
+        move = Actions::mohawkBang, forHair = HairStyle.MOHAWK),
+    HAIR_SPIKY(58, Category.HAIR, "شعري حاد كالسيف!", Anim.CUSTOM, fx = Fx.STARS, durationMs = 5000,
+        move = Actions::spikyProud, forHair = HairStyle.SPIKY),
+
+    // ───── تاسعاً: حركة خاصة لكل زي (59 – 68) ─────
+    OUTFIT_COAT(59, Category.OUTFIT, "أزرّر المعطف... الجو بارد!", Anim.CUSTOM, fx = Fx.SNOW, durationMs = 5500,
+        move = Actions::coatButton, forOutfit = Outfit.COAT),
+    OUTFIT_TSHIRT(60, Category.OUTFIT, "انظر إلى عضلاتي!", Anim.CUSTOM, durationMs = 5000,
+        move = Actions::tshirtFlex, forOutfit = Outfit.TSHIRT),
+    OUTFIT_HOODIE(61, Category.OUTFIT, "هكذا أفضل... لا أحد يراني!", Anim.CUSTOM, durationMs = 6500,
+        move = Actions::hoodiePull, forOutfit = Outfit.HOODIE),
+    OUTFIT_SUIT(62, Category.OUTFIT, "يجب أن أبدو أنيقاً!", Anim.CUSTOM, fx = Fx.STARS, durationMs = 5500,
+        move = Actions::suitTie, forOutfit = Outfit.SUIT),
+    OUTFIT_DRESS(63, Category.OUTFIT, "انظر كيف يدور فستاني!", Anim.CUSTOM, fx = Fx.HEARTS, durationMs = 5500,
+        move = Actions::dressTwirl, forOutfit = Outfit.DRESS),
+    OUTFIT_SKIRT(64, Category.OUTFIT, "تشرفت بمعرفتك!", Anim.CUSTOM, durationMs = 5000,
+        move = Actions::skirtCurtsy, forOutfit = Outfit.SKIRT),
+    OUTFIT_THOBE(65, Category.OUTFIT, "السلام عليكم ورحمة الله!", Anim.CUSTOM, durationMs = 5500,
+        move = Actions::thobeSalam, forOutfit = Outfit.THOBE),
+    OUTFIT_SPORT(66, Category.OUTFIT, "لا للكسل! تمرين صباحي!", Anim.CUSTOM, fx = Fx.SWEAT, durationMs = 5500,
+        move = Actions::sportJog, forOutfit = Outfit.SPORT),
+    OUTFIT_PAJAMAS(67, Category.OUTFIT, "وسادتي العزيزة... تصبحين على خير.", Anim.CUSTOM, prop = Prop.PILLOW, fx = Fx.ZZZ, durationMs = 6500,
+        move = Actions::pajamaHug, forOutfit = Outfit.PAJAMAS),
+    OUTFIT_SUMMER(68, Category.OUTFIT, "الجو حار جداً اليوم!", Anim.CUSTOM, prop = Prop.FAN, fx = Fx.SWEAT, durationMs = 5500,
+        move = Actions::summerFan, forOutfit = Outfit.SUMMER);
 
     val isQuestion: Boolean get() = question != null
+
+    /** هل تناسب هذه الحالة مظهر المستخدم الحالي؟ (حركات التسريحات والملابس الخاصة) */
+    fun fits(look: Look): Boolean =
+        (forHair == null || forHair == look.hair) && (forOutfit == null || forOutfit == look.outfit)
 
     companion object {
         val ALL: List<PetState> = entries.toList()
@@ -140,8 +193,8 @@ enum class PetState(
         fun byId(id: Int): PetState? = ALL.firstOrNull { it.id == id }
 
         /** اختيار عشوائي موزون: الأسئلة أقل تكراراً، ولا تتكرر الحالة نفسها مرتين متتاليتين. */
-        fun random(exclude: PetState? = null): PetState {
-            val pool = ALL.filter { it != exclude && !it.sleeping }
+        fun random(exclude: PetState? = null, look: Look = Look.DEFAULT): PetState {
+            val pool = ALL.filter { it != exclude && !it.sleeping && it.fits(look) }
             val total = pool.sumOf { weight(it) }
             var r = Random.nextInt(total)
             for (s in pool) {
@@ -151,18 +204,23 @@ enum class PetState(
             return pool.first()
         }
 
-        private fun weight(s: PetState): Int = if (s.isQuestion) 1 else 3
+        /** حركات التسريحة/الزي الحاليين أكثر ظهوراً ليراها المستخدم. */
+        private fun weight(s: PetState): Int = when {
+            s.isQuestion -> 1
+            s.forHair != null || s.forOutfit != null -> 5
+            else -> 3
+        }
 
         /** الحالة التالية بعد انتهاء الحالة: سلاسل منطقية (نعاس ← نوم ← استيقاظ) أو عشوائي. */
-        fun follow(current: PetState): PetState = when (current) {
+        fun follow(current: PetState, look: Look = Look.DEFAULT): PetState = when (current) {
             YAWN_SLEEPY -> SLEEP_BED
             SLEEP_BED -> if (Random.nextBoolean()) WAKE_ENERGETIC else WAKE_NAP
             NIGHTMARE -> WAKE_SUDDEN
             BACK_TO_SLEEP -> SLEEP_BED
-            WAKE_SUDDEN -> if (Random.nextInt(3) == 0) BACK_TO_SLEEP else random(current)
-            TIRED_WORK -> if (Random.nextBoolean()) YAWN_SLEEPY else random(current)
-            LAPTOP_WORK -> if (Random.nextInt(3) == 0) CELEBRATE else random(current)
-            else -> random(current)
+            WAKE_SUDDEN -> if (Random.nextInt(3) == 0) BACK_TO_SLEEP else random(current, look)
+            TIRED_WORK -> if (Random.nextBoolean()) YAWN_SLEEPY else random(current, look)
+            LAPTOP_WORK -> if (Random.nextInt(3) == 0) CELEBRATE else random(current, look)
+            else -> random(current, look)
         }
     }
 }
