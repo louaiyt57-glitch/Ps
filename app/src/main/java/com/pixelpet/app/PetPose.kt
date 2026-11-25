@@ -18,6 +18,8 @@ class Pose {
     var armL = 0f; var armR = 0f        // زاويتا الذراعين
     var legL = 0f; var legR = 0f        // رفع الرجلين
     var legSpread = 0f                  // تباعد الرجلين
+    var side = false                    // true = منظر جانبي (للمشي والركض)
+    var swing = 0f                      // تأرجح الرجلين للأمام/الخلف في المنظر الجانبي
     var squash = 1f                     // انضغاط الجسم رأسياً
     var lieAmt = 0f                     // 0 = واقف ... 1 = مستلقٍ على السرير
     var sit = false                     // جلوس
@@ -29,7 +31,7 @@ class Pose {
     fun reset() {
         dx = 0f; dy = 0f; lean = 0f; headTilt = 0f; look = 0f; lookY = 0f
         armL = 0f; armR = 0f; legL = 0f; legR = 0f; legSpread = 0f
-        squash = 1f; lieAmt = 0f; sit = false; face = null
+        squash = 1f; lieAmt = 0f; sit = false; face = null; side = false; swing = 0f
         chew = 0f; propT = 0f; blush = 0f
     }
 }
@@ -56,23 +58,27 @@ object PetPose {
         p.reset()
         val t = tMs / 1000f
         val prog = (tMs.toFloat() / durMs).coerceIn(0f, 1f)
+        p.side = s.motion != Motion.NONE   // أي حركة تنقل = منظر جانبي
 
         when (s.anim) {
             // ───── المشي والتنقل ─────
             Anim.WALK -> {
                 val w = sin(t * 6f)
+                p.swing = w * 2.4f
                 p.dy = -abs(w) * 0.7f
                 p.legL = max(0f, w) * 1.6f; p.legR = max(0f, -w) * 1.6f
                 p.armL = 8f + w * 18f; p.armR = 8f - w * 18f
             }
             Anim.RUN -> {
                 val w = sin(t * 11f)
+                p.swing = w * 3.8f
                 p.dy = -abs(w) * 1.3f; p.lean = 14f
                 p.legL = max(0f, w) * 3.2f; p.legR = max(0f, -w) * 3.2f
                 p.armL = 20f + w * 40f; p.armR = 20f - w * 40f
             }
             Anim.SNEAK -> {
                 val w = sin(t * 3f)
+                p.swing = w * 1.5f
                 p.dy = 1.2f; p.squash = 0.93f; p.lean = 7f
                 p.legL = max(0f, w) * 1.2f; p.legR = max(0f, -w) * 1.2f
                 p.armL = 25f; p.armR = 25f; p.look = sin(t * 1.3f) * 0.6f
@@ -102,6 +108,7 @@ object PetPose {
             }
             Anim.CLIMB -> {
                 val w = sin(t * 3.2f)
+                p.swing = w * 2.5f
                 p.armR = 165f + w * 6f            // الذراع القريبة من الحافة ممسكة بها
                 p.armL = 110f - w * 22f
                 p.legL = max(0f, w) * 2.5f; p.legR = max(0f, -w) * 2.5f
@@ -200,6 +207,7 @@ object PetPose {
             }
             Anim.PUSH -> {
                 val w = sin(t * 4f)
+                p.swing = w * 2f
                 p.armL = -72f; p.armR = -72f; p.lean = 16f
                 p.legL = max(0f, w) * 1.5f; p.legR = max(0f, -w) * 1.5f
                 p.propT = t
