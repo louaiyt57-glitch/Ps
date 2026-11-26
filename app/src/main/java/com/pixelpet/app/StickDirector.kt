@@ -56,7 +56,8 @@ class StickActor(val id: Int, val color: SColor) {
     fun add(s: Step) { queue.add(s) }
 
     fun switchTo(a: SAnim) { if (a != anim) { anim = a; animT = 0f } }
-    fun showEmote(e: SEmote, dur: Float) { emote = e; emoteT = 0f; emoteDur = dur }
+    /** الرموز فوق الرأس ملغاة: المعنى يُفهم من حركة الجسم فقط. */
+    fun showEmote(e: SEmote, dur: Float) { }
 
     // ───── تنعيم المفاصل: زنبرك مخمَّد حرجياً بسرعة متصلة (بدون قفزات ولا توقفات حادة) ─────
     private val ch = FloatArray(13)
@@ -363,7 +364,7 @@ class StickDirector(val density: Float, var screenW: Int) {
         val sx = listOf(lo() + 16f * density, hi() - 16f * density, lo() + 58f * density)
         spec.forEachIndexed { i, o ->
             o.go(sx[i]); o.face(cx); o.sync("st", 5)
-            o.play(SAnim.IDLE, 1.0f, SEmote.EXCL)
+            o.play(SAnim.POINT, 1.0f)
         }
         // جولات متبادلة
         val rounds = Random.nextInt(3, 5)
@@ -561,7 +562,7 @@ class StickDirector(val density: Float, var screenW: Int) {
         miner.play(SAnim.CHEER, 2.2f, SEmote.STAR, SProp.DIAMOND)
         for (o in sh.drop(1)) {
             o.go(x + (o.id + 1) * 38f * density); o.face(x)
-            o.play(SAnim.IDLE, 3.5f, SEmote.QUEST)
+            o.play(SAnim.THINK, 3.5f)
             o.play(SAnim.CHEER, 2.8f, SEmote.STAR)
         }
     }
