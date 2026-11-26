@@ -42,10 +42,6 @@ class StickActor(val id: Int, val color: SColor) {
     val pose = SPose()               // الوضعية المعروضة (ممزوجة بسلاسة)
     private val target = SPose()
     var phase = Random.nextFloat() * 5f
-    var face = SFace.CALM
-    var blinking = false
-    private var blinkT = 0f
-    private var nextBlink = 2f + Random.nextFloat() * 3f
     var facingVis = 1f               // اتجاه مرئي يلتف تدريجياً
     private var vel = 0f
 
@@ -86,19 +82,9 @@ class StickActor(val id: Int, val color: SColor) {
         facingVis = facingVis + (facing - facingVis) * (1f - exp(-dt * 14f))
     }
 
-    private fun updateFace(dt: Float) {
-        val nf = StickFaces.pick(anim, emote, id)
-        if (nf != face) { face = nf; blinkT = 0.1f }          // رمشة سريعة عند تغيّر التعبير
-        nextBlink -= dt
-        if (nextBlink <= 0f) { blinkT = 0.12f; nextBlink = 2f + Random.nextFloat() * 3.5f }
-        if (blinkT > 0f) blinkT -= dt
-        blinking = blinkT > 0f
-    }
-
     fun update(dt: Float, d: StickDirector) {
         step(dt, d)
         smoothPose(dt)
-        updateFace(dt)
     }
 
     private fun step(dt: Float, d: StickDirector) {
