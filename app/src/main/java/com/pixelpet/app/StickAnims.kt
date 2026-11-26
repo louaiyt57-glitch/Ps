@@ -14,7 +14,10 @@ enum class SAnim(val front: Boolean = false, val loop: Boolean = true, val snapp
     // ── قتال ──
     FSTANCE, SHUFFLE, WINDUP(false, false, true), LUNGE(false, false, true), SLASH(false, false, true),
     KICK(false, false, true), HIT(false, false, true), BLOCK(false, false, true), FLYBACK(false, false, true),
-    KOED, CHARGE, BEAM(false, false, true), SLAM(false, false, true), VICTORY, SPINATK(true, true, true)
+    KOED, CHARGE, BEAM(false, false, true), SLAM(false, false, true), VICTORY, SPINATK(true, true, true),
+    // ── سينمائية: ترقّب ثم ضربة ثم متابعة، وحركات استعراض الجسد ──
+    PROWL, TENSE, BACKFLIP(false, false, true), DODGE(false, false, true), COMBO(false, false, true),
+    SLIDE(false, false, true), HANDSTAND, MEDITATE, PAT(true), RISE(false, false)
 }
 
 object StickAnims {
@@ -269,6 +272,72 @@ object StickAnims {
                 val b = w(t, 0.5f)
                 p.lean = 10f + b * 2f; p.head = 14f; p.nSa = -2f; p.fSa = -6f; p.nEb = 5f; p.fEb = 5f
                 p.nHa = 4f; p.fHa = -4f
+            }
+
+            // ── حركات سينمائية: المعنى من الجسد وحده (ترقّب → ضربة → متابعة) ──
+            SAnim.PROWL -> { // تسلل منخفض بطيء: ترقّب قبل الغارة
+                val b = w(t, 1.1f)
+                p.lean = 18f + b * 3f; p.nHa = 34f + b * 10f; p.nKb = 58f; p.fHa = -30f; p.fKb = 64f
+                p.nSa = 30f - b * 8f; p.nEb = 70f; p.fSa = 22f + b * 8f; p.fEb = 82f
+                p.dx = w(t, 2.2f) * 1.2f
+            }
+            SAnim.TENSE -> { // قوة مشدودة: قبضتان ترتجفان، رقبة مفتوحة
+                val s = w(t, 11f)
+                p.nSa = 96f; p.fSa = 96f; p.nEb = 128f + s * 4f; p.fEb = 128f - s * 4f
+                p.lean = 6f; p.nHa = 20f; p.fHa = -20f; p.nKb = 16f; p.fKb = 16f
+            }
+            SAnim.BACKFLIP -> { // شقلبة خلفية كاملة حول الورك
+                val u = (t / 0.62f).coerceIn(0f, 1f)
+                p.rot = -360f * ease(u)
+                p.lift = 22f * sin(3.1416f * u)
+                p.nSa = 150f * (1f - u) + 20f * u; p.fSa = p.nSa
+                p.nKb = 70f * (1f - abs(2f * u - 1f)); p.fKb = p.nKb
+                p.nHa = 18f; p.fHa = -18f
+            }
+            SAnim.DODGE -> { // تلقاء سريع للخلف: خطوة واحدة ملتوية
+                val u = (t / 0.28f).coerceIn(0f, 1f)
+                val k = sin(3.1416f * u)
+                p.lean = -34f * k; p.dx = -10f * k
+                p.nSa = 60f * k + 20f * (1f - k); p.fSa = 40f * k
+                p.nEb = 80f; p.fEb = 90f; p.nHa = 24f; p.fKb = 40f * k + 12f
+                p.head = -10f * k
+            }
+            SAnim.COMBO -> { // ضربتان متتاليتان: وجهة ثم عرضية
+                val u = (t / 0.5f).coerceIn(0f, 1f)
+                val swing = if (u < 0.5f) ease(u * 4f) else ease((1f - u) * 4f)
+                val v = if (u < 0.5f) 1f else 0.6f
+                p.nSa = 150f - 110f * swing * v; p.nEb = 24f * (1f - swing)
+                p.fSa = 40f + 50f * swing * v; p.lean = -4f + 26f * swing
+                p.nHa = 34f; p.nKb = 10f; p.fHa = -26f; p.fKb = 26f
+            }
+            SAnim.SLIDE -> { // انزلاق على الورك بقدم ممدودة
+                p.rot = -68f; p.dx = 6f
+                p.fHa = 78f; p.fKb = 4f; p.nHa = 30f; p.nKb = 66f
+                p.nSa = 30f; p.fSa = 130f; p.fEb = 40f; p.lean = -6f
+            }
+            SAnim.HANDSTAND -> { // وقوف على اليدين: جسم مقلوب ثابت مع توازن طفيف
+                p.rot = 180f; p.nSa = 172f; p.fSa = 172f; p.nEb = 4f; p.fEb = 4f
+                p.nHa = 6f + w(t, 1.3f) * 3f; p.fHa = -6f - w(t, 1.3f) * 3f
+                p.head = -6f
+            }
+            SAnim.MEDITATE -> { // جلوس التأمل: أرجل متشابكة ويانعة على الركبتين
+                p.nHa = 96f; p.fHa = 96f; p.nKb = 108f; p.fKb = 108f
+                p.nSa = 26f; p.nEb = 58f; p.fSa = 22f; p.fEb = 58f
+                p.lean = 1f + w(t, 0.3f) * 0.8f; p.head = -4f + w(t, 0.3f) * 2f
+            }
+            SAnim.PAT -> { // ربّة على الكتف: يد قريبة تنخفض بلطف بإيقاع
+                val b = w(t, 2.6f) * 0.5f + 0.5f
+                p.nSa = 96f; p.nEb = 96f - 14f * b; p.fSa = 4f
+                p.lean = 7f; p.head = 5f; p.nHa = 6f; p.fHa = -4f
+            }
+            SAnim.RISE -> { // نهوض بطولي: يبدأ راكعاً ويرتفع مع فتح الصدر
+                val u = ease(t / 0.9f)
+                p.lean = 34f * (1f - u) - 6f * u; p.head = 12f * (1f - u) - 8f * u
+                p.nSa = 60f * (1f - u) + 10f * u; p.fSa = 55f * (1f - u) - 6f * u
+                p.nEb = 40f * (1f - u) + 6f; p.fEb = p.nEb
+                p.nHa = 40f * (1f - u) + 4f * u; p.nKb = 60f * (1f - u)
+                p.fHa = -40f * (1f - u) - 4f * u; p.fKb = 60f * (1f - u)
+                p.lift = 1.5f * sin(3.1416f * u)
             }
         }
     }

@@ -26,6 +26,8 @@ class Step(
 }
 
 class StickActor(val id: Int, val color: SColor) {
+    /** طباع الشخصية الثابت: يختار إيماءاته وأدواره في المشاهد. */
+    val persona = SPersona.fromId(id)
     var x = 0f                  // مركز الأرض أفقياً (بكسل)
     var facing = 1
     var anim = SAnim.IDLE
@@ -241,7 +243,8 @@ class StickDirector(val density: Float, var screenW: Int) {
         reset()
         gap = Random.nextFloat() * 2f + 1.5f
         var k: Int
-        do { k = Random.nextInt(if (fights) 15 else 12) } while (k == lastScene)
+        do { k = Random.nextInt(if (fights) 18 else 15) }
+        while (k == lastScene || (!fights && k >= 12 && k <= 14))
         lastScene = k
         playScene(k)
     }
@@ -262,6 +265,9 @@ class StickDirector(val density: Float, var screenW: Int) {
             10 -> sceneIdea(sh)
             12, 13 -> sceneDuel(sh)
             14 -> sceneBossRush(sh)
+            15 -> sceneTraining(sh)
+            16 -> sceneFlipShow(sh)
+            17 -> sceneCalm(sh)
             else -> sceneConga(sh)
         }
     }
@@ -637,6 +643,89 @@ class StickDirector(val density: Float, var screenW: Int) {
         }
     }
 
+    // ───── مشاهد سينمائية جديدة: إيقاع محسوب (ترقّب → ضربة → متابعة) بلا رموز ولا كلام ─────
+
+    /** تدريب: المدرب الشجاع يدرّب الخجول على ضربة مركّبة، والباقي يسخّن حسب طباعه. */
+    private fun sceneTraining(sh: List<StickActor>) {
+        val coach = sh.firstOrNull { it.persona == SPersona.BRAVE } ?: sh[0]
+        val pupil = sh.firstOrNull { it !== coach && it.persona == SPersona.SHY } ?: sh.first { it !== coach }
+        val others = sh.filter { it !== coach && it !== pupil }
+        val cxL = cx - 34f * density; val cxR = cx + 34f * density
+        coach.go(cxL); pupil.go(cxR); coach.face(cxR); pupil.face(cxL)
+        others.forEach { it.go(if (it.x < cx) lo() else hi()); it.face(cx) }
+        coach.sync("tr", 5); pupil.sync("tr", 5); others.forEach { it.sync("tr", 5) }
+        // التسخين حسب الطباع
+        others.forEach { o ->
+            when (o.persona) {
+                SPersona.JOVIAL -> o.play(SAnim.HANDSTAND, 2.2f)
+                SPersona.COOL -> o.play(SAnim.MEDITATE, 4f)
+                else -> o.play(SAnim.SHRUG, 2.4f)
+            }
+            o.play(SAnim.LOOKAROUND, 1.6f)
+        }
+        // ترقّب المدرب ثم العرض
+        coach.play(SAnim.PROWL, 1.8f)
+        coach.play(SAnim.WINDUP, 0.3f)
+        coach.play(SAnim.COMBO, 0.5f)
+        coach.call { fx.impact(pupil.x, chest() + 8f * density, 0.7f, 0.8f, gold) }
+        pupil.play(SAnim.FSTANCE, 2.4f)
+        pupil.sync("d1", 4)
+        pupil.play(SAnim.DODGE, 0.28f)
+        pupil.play(SAnim.BLOCK, 0.9f)
+        pupil.sync("d2", 4)
+        // الدور: الخجول يبادر
+        pupil.play(SAnim.PROWL, 1.5f)
+        pupil.play(SAnim.COMBO, 0.5f)
+        pupil.call { fx.impact(coach.x, chest() + 8f * density, 0.7f, 0.8f, cyan) }
+        coach.play(SAnim.BLOCK, 1f)
+        coach.sync("r", 4)
+        coach.play(SAnim.NOD, 1.4f)
+        pupil.play(SAnim.VICTORY, 2.2f)
+        others.forEach { it.play(SAnim.CHEER, 2f) }
+        others.forEach { it.play(SAnim.CLAP, 1.6f) }
+    }
+
+    /** عرض بهلواني: المرح يقود عرض شقلبات، والعابس يتشنج ثم يضحك. */
+    private fun sceneFlipShow(sh: List<StickActor>) {
+        val star = sh.firstOrNull { it.persona == SPersona.JOVIAL } ?: sh[0]
+        val grump = sh.firstOrNull { it.persona == SPersona.GRUMPY && it !== star }
+        val crowd = sh.filter { it !== star }
+        star.go(cx); crowd.forEach { it.go(if (it.x < cx) lo() else hi()); it.face(cx) }
+        star.sync("fs", 5); crowd.forEach { it.sync("fs", 5) }
+        star.play(SAnim.BOW, 1.2f)
+        crowd.forEach { it.play(SAnim.CLAP, 1.2f) }
+        star.play(SAnim.BACKFLIP, 0.62f)
+        star.call { fx.impact(cx, chest() - 20f * density, 0f, 0.9f, gold); hit(2f, 0.05f) }
+        crowd.forEach { it.play(SAnim.CHEER, 1.6f) }
+        star.play(SAnim.HANDSTAND, 2f)
+        star.play(SAnim.SLIDE, 0.5f)
+        star.play(SAnim.RISE, 0.9f)
+        star.play(SAnim.BOW, 1.2f)
+        crowd.forEach { it.play(SAnim.CLAP, 1.8f) }
+        grump?.let { g ->
+            g.play(SAnim.TENSE, 1.4f)
+            g.play(SAnim.LAUGH, 1.8f)
+        }
+        crowd.forEach { it.play(SAnim.CHEER, 1.6f) }
+    }
+
+    /** هدوء جماعي: تأمل يقطعه العابس، جاره يربّت عليه فيعود الهدوء ثم تصفيق هادئ. */
+    private fun sceneCalm(sh: List<StickActor>) {
+        val grump = sh.firstOrNull { it.persona == SPersona.GRUMPY } ?: sh.last()
+        val neighbor = sh.filter { it !== grump }.minByOrNull { abs(it.x - grump.x) } ?: sh.first()
+        sh.forEach { a -> a.face(cx) }
+        sh.forEach { it.sync("cm", 5) }
+        sh.forEach { if (it !== grump) it.play(SAnim.MEDITATE, 4.5f) }
+        grump.play(SAnim.MEDITATE, 1.2f)
+        grump.play(SAnim.TENSE, 1.6f)
+        neighbor.go(grump.x + (if (neighbor.x < grump.x) -1 else 1) * 26f * density)
+        neighbor.face(grump.x)
+        neighbor.play(SAnim.PAT, 1.8f)
+        neighbor.sync("p", 4)
+        grump.play(SAnim.MEDITATE, 3.5f)
+        sh.forEach { it.play(SAnim.CHEER, 1.8f) }
+    }
+
     // ───── تفاعل المستخدم ─────
     private val gestures = listOf(
         SAnim.WAVE to SEmote.NONE, SAnim.THUMBS to SEmote.CHECK, SAnim.HEART to SEmote.HEART,
@@ -646,11 +735,20 @@ class StickDirector(val density: Float, var screenW: Int) {
         SAnim.BOW to SEmote.NONE, SAnim.LAUGH to SEmote.NONE
     )
 
-    /** نقرة على شخصية: تحيّيك بإشارة موجّهة إليك، وجار يلتفت إليها. */
+    /** إيماءات كل طباع: هوية الشخصية تظهر حتى في نقرة عابرة. */
+    private val personaGestures: Map<SPersona, List<Pair<SAnim, SEmote>>> = mapOf(
+        SPersona.BRAVE to listOf(SAnim.FLEX to SEmote.STAR, SAnim.SALUTE to SEmote.NONE, SAnim.BECKON to SEmote.EXCL, SAnim.VICTORY to SEmote.STAR),
+        SPersona.SHY to listOf(SAnim.WAVE to SEmote.NONE, SAnim.BOW to SEmote.NONE, SAnim.POINT to SEmote.QUEST, SAnim.TIRED to SEmote.NONE),
+        SPersona.JOVIAL to listOf(SAnim.DANCE to SEmote.NOTE, SAnim.LAUGH to SEmote.NONE, SAnim.CHEER to SEmote.STAR, SAnim.KISS to SEmote.HEART),
+        SPersona.COOL to listOf(SAnim.PEACE to SEmote.SPARK, SAnim.SALUTE to SEmote.NONE, SAnim.THUMBS to SEmote.CHECK, SAnim.BOW to SEmote.NONE),
+        SPersona.GRUMPY to listOf(SAnim.SHRUG to SEmote.QUEST, SAnim.FACEPALM to SEmote.NONE, SAnim.TENSE to SEmote.NONE, SAnim.STOP to SEmote.EXCL)
+    )
+
+    /** نقرة على شخصية: تحيّيك بإشارة موجّهة إليك بحسب طباعه، وجار يلتفت إليها. */
     fun onTap(i: Int) {
         reset(); gap = 2.5f
         val a = actors[i]
-        val (g, e) = gestures.random()
+        val (g, e) = (personaGestures[a.persona] ?: gestures).random()
         a.play(g, 2.4f, e)
         val nb = actors.filter { it !== a }.minByOrNull { abs(it.x - a.x) }!!
         nb.face(a.x); nb.wait(0.3f); nb.play(if (Random.nextBoolean()) SAnim.CLAP else SAnim.POINT, 1.8f, SEmote.EXCL)
