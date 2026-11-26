@@ -97,6 +97,7 @@ class StickGroupService : Service(), StickView.Listener {
                 PixelFormat.TRANSLUCENT
             ).apply {
                 gravity = Gravity.TOP or Gravity.START
+                preferredRefreshRate = 120f          // اطلب أعلى معدل تحديث متاح لحركة أنعم
                 if (Build.VERSION.SDK_INT >= 28) {
                     layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
                 }
@@ -116,7 +117,7 @@ class StickGroupService : Service(), StickView.Listener {
                 WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             PixelFormat.TRANSLUCENT
-        ).apply { gravity = Gravity.TOP or Gravity.START; x = 0; y = (baseY - fv.groundY).roundToInt() }
+        ).apply { gravity = Gravity.TOP or Gravity.START; preferredRefreshRate = 120f; x = 0; y = (baseY - fv.groundY).roundToInt() }
         try { wm.addView(fv, fxParams); fxView = fv } catch (e: Exception) { /* بدون مؤثرات */ }
 
         val f = IntentFilter().apply { addAction(Intent.ACTION_SCREEN_OFF); addAction(Intent.ACTION_SCREEN_ON) }
@@ -181,7 +182,10 @@ class StickGroupService : Service(), StickView.Listener {
             val oy = if (sh > 0.4f) ((Math.random() * 2 - 1) * sh).roundToInt() else 0
             for (i in views.indices) {
                 val a = dir.actors[i]; val p = params[i]
-                val nx = (a.x - rend.cx).roundToInt() + ox
+                val fxp = a.x - rend.cx
+                val nxi = kotlin.math.floor(fxp).toInt()
+                views[i].subX = fxp - nxi
+                val nx = nxi + ox
                 val ny = (if (a.dragging) p.y - lastOy else (baseY - rend.groundY).roundToInt()) + oy
                 if (nx != p.x || ny != p.y) {
                     p.x = nx; p.y = ny

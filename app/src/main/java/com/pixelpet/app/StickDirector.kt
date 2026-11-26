@@ -58,28 +58,48 @@ class StickActor(val id: Int, val color: SColor) {
     fun switchTo(a: SAnim) { if (a != anim) { anim = a; animT = 0f } }
     fun showEmote(e: SEmote, dur: Float) { emote = e; emoteT = 0f; emoteDur = dur }
 
-    private var maxStep = 20f
-    private fun blend(a: Float, b: Float, k: Float): Float {
-        val st = (b - a) * k
-        return a + st.coerceIn(-maxStep, maxStep)   // سرعة زاوية قصوى: لا قفزات حتى في التبدلات الكبيرة
+    // ───── تنعيم المفاصل: زنبرك مخمَّد حرجياً بسرعة متصلة (بدون قفزات ولا توقفات حادة) ─────
+    private val ch = FloatArray(13)
+    private val chV = FloatArray(13)
+    private val tg = FloatArray(13)
+    private var facingV = 0f
+
+    private fun damp(i: Int, goal: Float, smooth: Float, dt: Float) {
+        val om = 2f / smooth
+        val x = om * dt
+        val e = 1f / (1f + x + 0.48f * x * x + 0.235f * x * x * x)
+        val change = ch[i] - goal
+        val temp = (chV[i] + om * change) * dt
+        chV[i] = (chV[i] - om * temp) * e
+        ch[i] = goal + (change + temp) * e
     }
 
     private fun smoothPose(dt: Float) {
         StickAnims.apply(anim, animT + phase, target)
         val sn = anim.snappy
-        maxStep = (if (sn) 2600f else 760f) * dt
-        val k = 1f - exp(-dt * (if (sn) 44f else 16f))
+        val st = if (sn) 0.028f else 0.07f
+        val t = target
+        tg[0] = t.lean; tg[1] = t.head; tg[2] = t.nSa; tg[3] = t.nEb; tg[4] = t.fSa; tg[5] = t.fEb
+        tg[6] = t.nHa; tg[7] = t.nKb; tg[8] = t.fHa; tg[9] = t.fKb; tg[10] = t.rot; tg[11] = t.lift; tg[12] = t.dx
+        // خطوات فرعية: الحركة تبقى ناعمة حتى لو انخفض معدل الفريمات
+        val n = kotlin.math.ceil(dt / 0.011f).toInt().coerceIn(1, 10)
+        val h = dt / n
+        for (k in 0 until n) {
+            for (i in 0..9) damp(i, tg[i], st, h)
+            damp(10, tg[10], if (sn) 0.05f else 0.09f, h)
+            damp(11, tg[11], 0.045f, h)
+            damp(12, tg[12], 0.07f, h)
+            val om = 2f / 0.09f; val x = om * h
+            val e = 1f / (1f + x + 0.48f * x * x + 0.235f * x * x * x)
+            val change = facingVis - facing
+            val temp = (facingV + om * change) * h
+            facingV = (facingV - om * temp) * e
+            facingVis = facing + (change + temp) * e
+        }
         val p = pose
-        p.lean = blend(p.lean, target.lean, k); p.head = blend(p.head, target.head, k)
-        p.nSa = blend(p.nSa, target.nSa, k); p.nEb = blend(p.nEb, target.nEb, k)
-        p.fSa = blend(p.fSa, target.fSa, k); p.fEb = blend(p.fEb, target.fEb, k)
-        p.nHa = blend(p.nHa, target.nHa, k); p.nKb = blend(p.nKb, target.nKb, k)
-        p.fHa = blend(p.fHa, target.fHa, k); p.fKb = blend(p.fKb, target.fKb, k)
-        p.rot = blend(p.rot, target.rot, 1f - exp(-dt * 11f))
-        p.lift = p.lift + (target.lift - p.lift) * (1f - exp(-dt * 22f))
-        p.dx = p.dx + (target.dx - p.dx) * k
+        p.lean = ch[0]; p.head = ch[1]; p.nSa = ch[2]; p.nEb = ch[3]; p.fSa = ch[4]; p.fEb = ch[5]
+        p.nHa = ch[6]; p.nKb = ch[7]; p.fHa = ch[8]; p.fKb = ch[9]; p.rot = ch[10]; p.lift = ch[11]; p.dx = ch[12]
         p.front = target.front; p.thumb = target.thumb
-        facingVis = facingVis + (facing - facingVis) * (1f - exp(-dt * 14f))
     }
 
     fun update(dt: Float, d: StickDirector) {

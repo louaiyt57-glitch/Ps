@@ -26,6 +26,7 @@ class StickView(
     }
 
     var listener: Listener? = null
+    var subX = 0f          // الجزء الكسري من الموضع: حركة أنعم من حدود البكسل
     private val slop = ViewConfiguration.get(ctx).scaledTouchSlop.toFloat()
     private val h = Handler(Looper.getMainLooper())
     private var downX = 0f; private var downY = 0f
@@ -39,7 +40,9 @@ class StickView(
 
     override fun onDraw(c: Canvas) {
         val a = actor
+        c.save(); c.translate(subX, 0f)
         r.draw(c, a.color.argb, a.pose, a.facingVis, a.prop, a.animT, a.emote, a.emoteT, a.block)
+        c.restore()
     }
 
     override fun onTouchEvent(e: MotionEvent): Boolean {

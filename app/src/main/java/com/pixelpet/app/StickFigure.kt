@@ -15,7 +15,7 @@ import kotlin.math.sin
 /** ألوان الشخصيات الخمس. */
 enum class SColor(val argb: Int) {
     RED(Color.parseColor("#E53935")),
-    BLUE(Color.parseColor("#1E88E5")),
+    BLUE(Color.parseColor("#4FC3F7")),
     GREEN(Color.parseColor("#43A047")),
     YELLOW(Color.parseColor("#FBC02D")),
     ORANGE(Color.parseColor("#FB8C00"))
@@ -71,8 +71,8 @@ class StickRenderer(density: Float) {
         const val TORSO = 16f
         const val NECK = 1.2f
         const val HEAD_R = 6.3f
-        const val ARM1 = 9f
-        const val ARM2 = 9f
+        const val ARM1 = 8.6f
+        const val ARM2 = 8.6f
         const val LEG1 = 11f
         const val LEG2 = 11.5f
         const val LIMB_W = 4.3f
@@ -110,7 +110,7 @@ class StickRenderer(density: Float) {
         val tx = sin(l); val ty = -cos(l)
         px[HIP] = 0f; py[HIP] = 0f
         px[NECKP] = tx * TORSO; py[NECKP] = ty * TORSO
-        px[SH] = tx * (TORSO - 1.6f); py[SH] = ty * (TORSO - 1.6f)
+        px[SH] = tx * (TORSO - 0.5f); py[SH] = ty * (TORSO - 0.5f)   // الذراعان تتصلان عند أسفل الرقبة
         val hd = (p.lean + p.head) * r
         px[HEAD] = px[NECKP] + sin(hd) * (NECK + HEAD_R)
         py[HEAD] = py[NECKP] - cos(hd) * (NECK + HEAD_R)
@@ -147,8 +147,9 @@ class StickRenderer(density: Float) {
     }
 
     private fun leg(k: Int, f: Int, ha: Float, kb: Float, sign: Float, r: Float) {
+        val kbc = kb.coerceIn(-4f, 82f)          // قاعدة: الساق لا تنثني بشكل مبالغ فيه
         val a = ha * sign * r
-        val b = (ha - kb) * sign * r
+        val b = (ha - kbc) * sign * r
         px[k] = px[HIP] + sin(a) * LEG1; py[k] = py[HIP] + cos(a) * LEG1
         px[f] = px[k] + sin(b) * LEG2; py[f] = py[k] + cos(b) * LEG2
     }
@@ -156,6 +157,16 @@ class StickRenderer(density: Float) {
     private fun seg(c: Canvas, a: Int, b: Int, col: Int, w: Float) {
         paint.color = col; paint.strokeWidth = w
         c.drawLine(px[a], py[a], px[b], py[b], paint)
+    }
+
+    /** ذراع منحنية (لا مكسورة): منحنى يمر بالمرفق. */
+    private fun armCurve(c: Canvas, s: Int, e: Int, h: Int, col: Int) {
+        val cxp = 2f * px[e] - 0.5f * (px[s] + px[h])
+        val cyp = 2f * py[e] - 0.5f * (py[s] + py[h])
+        paint.color = col; paint.strokeWidth = LIMB_W
+        paint.style = Paint.Style.STROKE
+        path.reset(); path.moveTo(px[s], py[s]); path.quadTo(cxp, cyp, px[h], py[h])
+        c.drawPath(path, paint)
     }
 
     private fun limb(c: Canvas, a: Int, b: Int, d: Int, col: Int) {
@@ -189,16 +200,16 @@ class StickRenderer(density: Float) {
         if (p.front) {
             limb(c, HIP, KNE_F, FOT_F, color); limb(c, HIP, KNE_N, FOT_N, color)
             seg(c, HIP, NECKP, color, TORSO_W)
-            limb(c, SH, ELB_F, HND_F, color)
-            drawHead(c, color)
-            limb(c, SH, ELB_N, HND_N, color)
+            armCurve(c, SH, ELB_F, HND_F, color)
+            armCurve(c, SH, ELB_N, HND_N, color)
+            drawHead(c, color)          // الرأس فوق الجميع: الذراع تختفي خلفه
         } else {
-            limb(c, SH, ELB_F, HND_F, far)
+            armCurve(c, SH, ELB_F, HND_F, far)
             limb(c, HIP, KNE_F, FOT_F, far)
             seg(c, HIP, NECKP, color, TORSO_W)
             limb(c, HIP, KNE_N, FOT_N, color)
-            drawHead(c, color)
-            limb(c, SH, ELB_N, HND_N, color)
+            armCurve(c, SH, ELB_N, HND_N, color)
+            drawHead(c, color)          // الرأس فوق الجميع: الذراع تختفي خلفه
         }
 
         if (p.thumb) {
