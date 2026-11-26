@@ -34,5 +34,14 @@
                 android:value="floating_pet_overlay" />
         </service>
 
+        <service
+            android:name=".StickGroupService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="floating_stick_group_overlay" />
+        </service>
+
     </application>
 </manifest>

@@ -26,6 +26,10 @@ class MainActivity : Activity() {
     private lateinit var btnPerm: Button
     private lateinit var btnStart: Button
     private lateinit var btnStop: Button
+    private lateinit var tvStick: TextView
+    private lateinit var swFights: Switch
+    private lateinit var btnStickStart: Button
+    private lateinit var btnStickStop: Button
     private lateinit var swAuto: Switch
     private lateinit var swSound: Switch
     private lateinit var rgSpeed: RadioGroup
@@ -53,6 +57,12 @@ class MainActivity : Activity() {
         btnPerm = findViewById(R.id.btnPermission)
         btnStart = findViewById(R.id.btnStart)
         btnStop = findViewById(R.id.btnStop)
+        tvStick = findViewById(R.id.tvStickStatus)
+        swFights = findViewById(R.id.swFights)
+        swFights.isChecked = Prefs.stickFights(this)
+        swFights.setOnCheckedChangeListener { _, on -> Prefs.setStickFights(this, on) }
+        btnStickStart = findViewById(R.id.btnStickStart)
+        btnStickStop = findViewById(R.id.btnStickStop)
         swAuto = findViewById(R.id.swAuto)
         swSound = findViewById(R.id.swSound)
         rgSpeed = findViewById(R.id.rgSpeed)
@@ -75,6 +85,22 @@ class MainActivity : Activity() {
             }
             requestNotificationPermissionIfNeeded()
             FloatingPetService.start(this)
+            handler.postDelayed({ refreshUi() }, 400)
+        }
+
+        btnStickStart.setOnClickListener {
+            if (!Settings.canDrawOverlays(this)) {
+                Toast.makeText(this, R.string.need_permission_toast, Toast.LENGTH_LONG).show()
+                openOverlaySettings()
+                return@setOnClickListener
+            }
+            requestNotificationPermissionIfNeeded()
+            StickGroupService.start(this)
+            handler.postDelayed({ refreshUi() }, 400)
+        }
+
+        btnStickStop.setOnClickListener {
+            StickGroupService.stop(this)
             handler.postDelayed({ refreshUi() }, 400)
         }
 
@@ -168,6 +194,13 @@ class MainActivity : Activity() {
         btnStop.isEnabled = running
         btnStart.alpha = if (running) 0.45f else 1f
         btnStop.alpha = if (running) 1f else 0.45f
+
+        val stick = StickGroupService.running
+        tvStick.setText(if (stick) R.string.stick_running else R.string.stick_stopped)
+        btnStickStart.isEnabled = !stick
+        btnStickStop.isEnabled = stick
+        btnStickStart.alpha = if (stick) 0.45f else 1f
+        btnStickStop.alpha = if (stick) 1f else 0.45f
     }
 
     private fun openOverlaySettings() {
