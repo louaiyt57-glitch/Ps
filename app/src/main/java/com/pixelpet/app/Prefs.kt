@@ -16,6 +16,7 @@ object Prefs {
     private const val K_OUTFIT = "outfit"
     private const val K_HAIRSTYLE = "hairstyle"
     private const val K_QUALITY = "quality"
+    private const val K_STICK_Y = "stick_ground_y"
 
     const val Q_128 = 128
     const val Q_256 = 256
@@ -81,4 +82,8 @@ object Prefs {
     /** دقة الشخصية بالبكسل: 128 خشن، 256 متوسط (افتراضي)، 512 أدق تفصيلاً. */
     fun quality(c: Context): Int = sp(c).getInt(K_QUALITY, Q_256)
     fun setQuality(c: Context, v: Int) = sp(c).edit().putInt(K_QUALITY, v).apply()
+
+    /** أرضية مجموعة العيدان (y بالبكسل)، -1 = غير محفوظة. */
+    fun stickGroundY(c: Context): Int = sp(c).getInt(K_STICK_Y, -1)
+    fun setStickGroundY(c: Context, v: Int) = sp(c).edit().putInt(K_STICK_Y, v).apply()
 }

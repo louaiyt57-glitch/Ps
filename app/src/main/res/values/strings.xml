@@ -43,4 +43,13 @@
     <string name="notif_title">الشخصية تعمل</string>
     <string name="notif_text">اضغط لفتح التطبيق</string>
     <string name="notif_stop">إيقاف</string>
+
+    <string name="stick_title">مجموعة العيدان (5 شخصيات)</string>
+    <string name="stick_desc">خمس شخصيات ملوّنة تلعب وتتفاعل مع بعضها بالإشارات فقط. انقر على واحدة لتحيّيك، انقرتين لتحتفل الكل، واسحبها لتحملها.</string>
+    <string name="stick_start">تشغيل العيدان</string>
+    <string name="stick_stop">إيقاف العيدان</string>
+    <string name="stick_running">العيدان تعمل الآن</string>
+    <string name="stick_stopped">العيدان متوقفة</string>
+    <string name="stick_channel_name">مجموعة العيدان</string>
+    <string name="stick_notif_title">العيدان تعمل</string>
 </resources>
