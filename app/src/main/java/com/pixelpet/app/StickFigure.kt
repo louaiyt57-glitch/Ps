@@ -12,6 +12,15 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sin
 
+/**
+ * قواعد ثابتة لوضع العيدان فقط (انظر STICKMEN_RULES.md). لا تؤثر على وضع البيكسل.
+ * الرموز فوق الرؤوس ممنوعة: كل حالة تُفهم من حركة الجسم، ولا كلام ولا وجوه.
+ */
+object StickRules {
+    const val OVERHEAD_SYMBOLS = false
+    const val FACES = false
+}
+
 /** ألوان الشخصيات الخمس. */
 enum class SColor(val argb: Int) {
     RED(Color.parseColor("#E53935")),
@@ -223,7 +232,7 @@ class StickRenderer(density: Float) {
         headScreenY = groundY + py[HEAD] * unit
         c.restore()
 
-        if (emote != SEmote.NONE) {
+        if (StickRules.OVERHEAD_SYMBOLS && emote != SEmote.NONE) {
             val size = 7.5f * unit
             val ey = max(size * 1.2f, headScreenY - (HEAD_R + 8.5f) * unit)
             drawEmote(c, emote, headScreenX, ey, size, emoteT)
