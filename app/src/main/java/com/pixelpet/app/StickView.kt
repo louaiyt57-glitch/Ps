@@ -39,7 +39,7 @@ class StickView(
 
     override fun onDraw(c: Canvas) {
         val a = actor
-        r.draw(c, a.color.argb, a.pose, a.facingVis, a.prop, a.animT, a.emote, a.emoteT, a.block)
+        r.draw(c, a.color.argb, a.pose, a.facingVis, a.prop, a.animT, a.emote, a.emoteT, a.block, a.face, a.blinking)
     }
 
     override fun onTouchEvent(e: MotionEvent): Boolean {

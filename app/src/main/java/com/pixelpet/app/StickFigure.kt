@@ -70,7 +70,7 @@ class StickRenderer(density: Float) {
     private companion object {
         const val TORSO = 16f
         const val NECK = 1.2f
-        const val HEAD_R = 6.3f
+        const val HEAD_R = 7.8f
         const val ARM1 = 9f
         const val ARM2 = 9f
         const val LEG1 = 11f
@@ -97,6 +97,11 @@ class StickRenderer(density: Float) {
         textAlign = Paint.Align.CENTER
     }
     private val path = Path()
+    private var curFace = SFace.CALM
+    private var curBlink = false
+    private var curFront = false
+    private var curT = 0f
+    private var headAng = 0f
     private val oval = RectF()
 
     /** موضع الرأس على الشاشة (بعد آخر رسم) لاستخدام المؤثرات. */
@@ -112,6 +117,7 @@ class StickRenderer(density: Float) {
         px[NECKP] = tx * TORSO; py[NECKP] = ty * TORSO
         px[SH] = tx * (TORSO - 1.6f); py[SH] = ty * (TORSO - 1.6f)
         val hd = (p.lean + p.head) * r
+        headAng = p.lean + p.head + p.rot
         px[HEAD] = px[NECKP] + sin(hd) * (NECK + HEAD_R)
         py[HEAD] = py[NECKP] - cos(hd) * (NECK + HEAD_R)
 
@@ -167,8 +173,9 @@ class StickRenderer(density: Float) {
      */
     fun draw(
         c: Canvas, color: Int, p: SPose, facing: Float, prop: SProp, t: Float,
-        emote: SEmote, emoteT: Float, block: Int = 0
+        emote: SEmote, emoteT: Float, block: Int = 0, face: SFace = SFace.CALM, blink: Boolean = false
     ) {
+        curFace = face; curBlink = blink; curT = t; curFront = p.front
         solve(p)
         val far = shade(color, 0.68f)
 
@@ -223,6 +230,7 @@ class StickRenderer(density: Float) {
         paint.style = Paint.Style.FILL
         paint.color = color
         c.drawCircle(px[HEAD], py[HEAD], HEAD_R, paint)
+        StickFaces.draw(c, curFace, px[HEAD], py[HEAD], headAng, HEAD_R, curFront, curBlink, curT, color)
         paint.style = Paint.Style.STROKE
     }
 
