@@ -61,20 +61,20 @@ class SPose {
  * الأصل = وسط الأرض تحت القدمين. الأرض تُحسب تلقائياً: أخفض نقطة في الجسم تلامس الأرض.
  */
 class StickRenderer(density: Float) {
-    val unit = 1.5f * density
-    val winW = (96f * density).toInt()
-    val winH = (140f * density).toInt()
-    val groundY = winH - 15f * density
+    val unit = 1.8f * density
+    val winW = (124f * density).toInt()
+    val winH = (190f * density).toInt()
+    val groundY = winH - 18f * density
     val cx = winW / 2f
 
     private companion object {
         const val TORSO = 16f
         const val NECK = 1.2f
-        const val HEAD_R = 6.3f
-        const val ARM1 = 8.6f
-        const val ARM2 = 8.6f
-        const val LEG1 = 11f
-        const val LEG2 = 11.5f
+        const val HEAD_R = 6.6f
+        const val ARM1 = 11f
+        const val ARM2 = 11f
+        const val LEG1 = 14f
+        const val LEG2 = 14.5f
         const val LIMB_W = 4.3f
         const val TORSO_W = 4.8f
 

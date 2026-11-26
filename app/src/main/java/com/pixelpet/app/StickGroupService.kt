@@ -76,7 +76,7 @@ class StickGroupService : Service(), StickView.Listener {
         density = resources.displayMetrics.density
         readScreen()
         rend = StickRenderer(density)
-        dir = StickDirector(density, screenW)
+        dir = StickDirector(density * 1.2f, screenW)
         dir.auto = Prefs.autoMove(this)
         dir.fights = Prefs.stickFights(this)
 
@@ -108,7 +108,7 @@ class StickGroupService : Service(), StickView.Listener {
         }
 
         // نافذة المؤثرات فوق الجميع (لا تلتقط اللمس)
-        val fv = FxView(this, dir.fx, screenW, (260f * density).toInt(), 225f * density)
+        val fv = FxView(this, dir.fx, screenW, (310f * density).toInt(), 272f * density)
         fxParams = WindowManager.LayoutParams(
             fv.w, fv.h,
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
