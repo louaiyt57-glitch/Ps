@@ -54,7 +54,10 @@ class StickGroupService : Service(), StickView.Listener {
     private var screenH = 0
     private var density = 1f
     private var baseY = 0f          // أرضية المجموعة (بكسل، y لموضع الأرض)
+    private var fxView: FxView? = null
+    private lateinit var fxParams: WindowManager.LayoutParams
     private var lastFrame = 0L
+    private var lastOy = 0
     private var looping = false
     private var receiverRegistered = false
 
@@ -75,6 +78,7 @@ class StickGroupService : Service(), StickView.Listener {
         rend = StickRenderer(density)
         dir = StickDirector(density, screenW)
         dir.auto = Prefs.autoMove(this)
+        dir.fights = Prefs.stickFights(this)
 
         val sy = Prefs.stickGroundY(this)
         baseY = if (sy >= 0) sy.toFloat() else screenH * 0.82f
@@ -102,6 +106,19 @@ class StickGroupService : Service(), StickView.Listener {
             views.add(v); params.add(p)
         }
 
+        // نافذة المؤثرات فوق الجميع (لا تلتقط اللمس)
+        val fv = FxView(this, dir.fx, screenW, (260f * density).toInt(), 225f * density)
+        fxParams = WindowManager.LayoutParams(
+            fv.w, fv.h,
+            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
+                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+            PixelFormat.TRANSLUCENT
+        ).apply { gravity = Gravity.TOP or Gravity.START; x = 0; y = (baseY - fv.groundY).roundToInt() }
+        try { wm.addView(fv, fxParams); fxView = fv } catch (e: Exception) { /* بدون مؤثرات */ }
+
         val f = IntentFilter().apply { addAction(Intent.ACTION_SCREEN_OFF); addAction(Intent.ACTION_SCREEN_ON) }
         if (Build.VERSION.SDK_INT >= 33) registerReceiver(screenReceiver, f, Context.RECEIVER_NOT_EXPORTED)
         else registerReceiver(screenReceiver, f)
@@ -127,6 +144,7 @@ class StickGroupService : Service(), StickView.Listener {
         pauseLoop()
         if (receiverRegistered) { try { unregisterReceiver(screenReceiver) } catch (_: Exception) {}; receiverRegistered = false }
         if (views.isNotEmpty()) Prefs.setStickGroundY(this, baseY.roundToInt())
+        fxView?.let { try { wm.removeView(it) } catch (_: Exception) {} }; fxView = null
         for (v in views) try { wm.removeView(v) } catch (_: Exception) {}
         views.clear(); params.clear()
         super.onDestroy()
@@ -157,15 +175,28 @@ class StickGroupService : Service(), StickView.Listener {
             val dt = if (lastFrame == 0L) 0.033f else ((t - lastFrame) / 1e9f).coerceIn(0f, 0.1f)
             lastFrame = t
             dir.update(dt)
+            // اهتزاز الشاشة عند الضربات القوية
+            val sh = dir.shake
+            val ox = if (sh > 0.4f) ((Math.random() * 2 - 1) * sh).roundToInt() else 0
+            val oy = if (sh > 0.4f) ((Math.random() * 2 - 1) * sh).roundToInt() else 0
             for (i in views.indices) {
                 val a = dir.actors[i]; val p = params[i]
-                val nx = (a.x - rend.cx).roundToInt()
-                val ny = if (a.dragging) p.y else (baseY - rend.groundY).roundToInt()
+                val nx = (a.x - rend.cx).roundToInt() + ox
+                val ny = (if (a.dragging) p.y - lastOy else (baseY - rend.groundY).roundToInt()) + oy
                 if (nx != p.x || ny != p.y) {
                     p.x = nx; p.y = ny
                     try { wm.updateViewLayout(views[i], p) } catch (_: Exception) {}
                 }
                 views[i].invalidate()
+            }
+            lastOy = oy
+            fxView?.let { fv ->
+                val fy = (baseY - fv.groundY).roundToInt() + oy
+                if (fxParams.y != fy || fxParams.x != ox) {
+                    fxParams.x = ox; fxParams.y = fy
+                    try { wm.updateViewLayout(fv, fxParams) } catch (_: Exception) {}
+                }
+                if (dir.fx.active) fv.invalidate()
             }
             Choreographer.getInstance().postFrameCallback(this)
         }

@@ -5,12 +5,16 @@ import kotlin.math.max
 import kotlin.math.sin
 
 /** الإشارات والحركات المتاحة لعيدان الشخصيات. كل واحدة دالة وضعية بدون أي كلام. */
-enum class SAnim(val front: Boolean = false, val loop: Boolean = true) {
+enum class SAnim(val front: Boolean = false, val loop: Boolean = true, val snappy: Boolean = false) {
     IDLE, WALK, RUN, WAVE(true), JUMP(false, false), CHEER(true), DANCE(true), MINE, POINT,
     SHRUG(true), CLAP(true), BOW(false, false), SIT, SLEEP, SCARED(true), LAUGH(true), THINK,
     FLEX(true), FALL(false, false), SALUTE(true), THUMBS(true), FACEPALM, BECKON(true), STOP(true),
     HEART(true), PEACE(true), KISS(true), HIGHFIVE, HUG, PUSH, CARRIED(true), GETUP(false, false),
-    SPIN(true), NOD, LOOKAROUND, TIRED
+    SPIN(true), NOD, LOOKAROUND, TIRED,
+    // ── قتال ──
+    FSTANCE, SHUFFLE, WINDUP(false, false, true), LUNGE(false, false, true), SLASH(false, false, true),
+    KICK(false, false, true), HIT(false, false, true), BLOCK(false, false, true), FLYBACK(false, false, true),
+    KOED, CHARGE, BEAM(false, false, true), SLAM(false, false, true), VICTORY, SPINATK(true, true, true)
 }
 
 object StickAnims {
@@ -186,6 +190,80 @@ object StickAnims {
                 val b = w(t, 0.7f)
                 p.head = 10f * b; p.nSa = 5f; p.fSa = -3f; p.nEb = 20f; p.fEb = 15f; p.dx = b * 0.8f
                 p.nSa = 100f * max(0f, -b) * 0f + p.nSa
+            }
+
+            SAnim.FSTANCE, SAnim.SHUFFLE -> {
+                val b = w(t, 1.7f)
+                val sh = if (a == SAnim.SHUFFLE) w(t, 4.2f) * 9f else 0f
+                p.lean = 9f + b * 1.2f; p.nHa = 28f + sh; p.nKb = 26f; p.fHa = -22f - sh; p.fKb = 22f
+                p.nSa = 78f + b * 3f; p.nEb = 92f; p.fSa = 66f; p.fEb = 104f
+            }
+            SAnim.WINDUP -> {
+                val u = ease(t / 0.3f)
+                p.nSa = 165f * u + 78f * (1f - u); p.nEb = 25f * u + 92f * (1f - u)
+                p.fSa = 66f * (1f - u) + 40f * u; p.fEb = 100f
+                p.lean = 9f - 19f * u; p.nHa = 22f; p.nKb = 30f; p.fHa = -18f; p.fKb = 26f
+            }
+            SAnim.LUNGE -> {
+                p.nSa = 150f; p.nEb = 10f; p.fSa = -30f; p.fEb = 10f
+                p.lean = 26f; p.nHa = 42f; p.nKb = 0f; p.fHa = -38f; p.fKb = 34f; p.lift = 2f
+            }
+            SAnim.SLASH -> {
+                val u = ease(t / 0.2f)
+                p.nSa = 165f - 115f * u; p.nEb = 25f * (1f - u); p.fSa = 40f + 40f * u; p.fEb = 60f
+                p.lean = -6f + 30f * u; p.nHa = 36f; p.nKb = 8f; p.fHa = -28f; p.fKb = 24f
+            }
+            SAnim.KICK -> {
+                val u = sin(3.1416f * (t / 0.42f).coerceIn(0f, 1f))
+                p.nHa = 104f * u; p.nKb = 55f * (1f - u); p.fHa = -6f; p.fKb = 8f
+                p.lean = -16f * u; p.nSa = 60f * u; p.fSa = -35f * u; p.nEb = 30f; p.fEb = 30f
+            }
+            SAnim.HIT -> {
+                val k = 1f - 0.6f * ease(t / 0.5f)
+                p.lean = -30f * k; p.head = -26f * k; p.nSa = 135f * k; p.fSa = 95f * k; p.nEb = 30f; p.fEb = 30f
+                p.nKb = 22f * k; p.nHa = -8f * k; p.fHa = 10f * k
+            }
+            SAnim.BLOCK -> {
+                p.nSa = 108f; p.nEb = 118f; p.fSa = 102f; p.fEb = 112f; p.lean = -5f
+                p.nHa = 26f; p.nKb = 24f; p.fHa = -26f; p.fKb = 20f
+                p.dx = if (t < 0.18f) w(t, 22f) * 0.8f else 0f
+            }
+            SAnim.FLYBACK -> {
+                val u = (t / 0.8f).coerceIn(0f, 1f)
+                p.lift = 4f * u * (1f - u) * 17f
+                p.rot = -90f * ease(u) - 28f * sin(3.1416f * u)
+                p.nSa = 150f; p.fSa = 120f; p.nHa = 24f; p.fHa = -16f; p.nKb = 20f; p.dx = 9f * u
+            }
+            SAnim.KOED -> {
+                p.rot = -90f; p.dx = 9f; p.nSa = 100f; p.fSa = 70f; p.nHa = 14f; p.fHa = -10f
+                p.nKb = 16f; p.fKb = 30f; p.lean = w(t, 0.5f) * 1.2f
+            }
+            SAnim.CHARGE -> {
+                p.nHa = 30f; p.nKb = 56f; p.fHa = -28f; p.fKb = 50f; p.lean = 14f
+                p.nSa = 26f; p.nEb = 40f; p.fSa = 18f; p.fEb = 40f; p.dx = w(t, 26f) * 0.8f
+            }
+            SAnim.BEAM -> {
+                val k = ease(t / 0.15f)
+                p.lean = -10f * k + w(t, 20f) * 1.4f; p.nSa = 92f * k; p.fSa = 95f * k; p.nEb = -2f; p.fEb = -2f
+                p.nHa = 38f; p.fHa = -32f; p.nKb = 10f; p.fKb = 20f; p.dx = w(t, 27f) * 0.6f
+            }
+            SAnim.SLAM -> {
+                val u = (t / 0.62f).coerceIn(0f, 1f)
+                p.lift = 30f * sin(3.1416f * u)
+                val down = ease((u - 0.72f) / 0.28f)
+                p.nSa = 172f - 118f * down; p.nEb = 8f; p.fSa = 150f - 90f * down; p.fEb = 20f
+                p.nHa = 40f; p.nKb = 62f * (1f - down); p.fHa = -10f; p.fKb = 70f * (1f - down)
+                p.lean = -6f + 34f * down
+            }
+            SAnim.VICTORY -> {
+                val b = w(t, 1.3f)
+                p.nSa = 172f; p.nEb = 4f; p.fSa = 24f; p.fEb = 20f; p.lean = -7f
+                p.lift = max(0f, b) * 3f; p.nHa = 10f; p.fHa = -10f
+            }
+            SAnim.SPINATK -> {
+                val b = w(t, 7f)
+                p.nSa = 90f; p.fSa = 90f; p.nEb = 0f; p.fEb = 0f; p.lift = 5f
+                p.nHa = 20f; p.fHa = -20f; p.nKb = 30f; p.fKb = 30f; p.front = b > 0f
             }
             SAnim.TIRED -> {
                 val b = w(t, 0.5f)

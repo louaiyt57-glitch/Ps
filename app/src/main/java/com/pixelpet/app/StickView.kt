@@ -73,3 +73,9 @@ class StickView(
         return true
     }
 }
+
+/** نافذة المؤثرات: بعرض الشاشة، لا تلتقط اللمس أبداً، ترسم فوق الشخصيات. */
+class FxView(ctx: Context, private val fx: StickFx, val w: Int, val h: Int, val groundY: Float) : View(ctx) {
+    override fun onMeasure(wm: Int, hm: Int) = setMeasuredDimension(w, h)
+    override fun onDraw(c: Canvas) { fx.draw(c, groundY, w.toFloat(), h.toFloat()) }
+}

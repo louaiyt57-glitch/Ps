@@ -27,6 +27,7 @@ class MainActivity : Activity() {
     private lateinit var btnStart: Button
     private lateinit var btnStop: Button
     private lateinit var tvStick: TextView
+    private lateinit var swFights: Switch
     private lateinit var btnStickStart: Button
     private lateinit var btnStickStop: Button
     private lateinit var swAuto: Switch
@@ -57,6 +58,9 @@ class MainActivity : Activity() {
         btnStart = findViewById(R.id.btnStart)
         btnStop = findViewById(R.id.btnStop)
         tvStick = findViewById(R.id.tvStickStatus)
+        swFights = findViewById(R.id.swFights)
+        swFights.isChecked = Prefs.stickFights(this)
+        swFights.setOnCheckedChangeListener { _, on -> Prefs.setStickFights(this, on) }
         btnStickStart = findViewById(R.id.btnStickStart)
         btnStickStop = findViewById(R.id.btnStickStop)
         swAuto = findViewById(R.id.swAuto)

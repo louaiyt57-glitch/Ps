@@ -26,7 +26,7 @@ fun shade(c: Int, f: Float): Int =
     Color.rgb((Color.red(c) * f).toInt(), (Color.green(c) * f).toInt(), (Color.blue(c) * f).toInt())
 
 /** أغراض تُمسك باليد. */
-enum class SProp { NONE, PICKAXE, BLOCK, TORCH, FLAG, DIAMOND }
+enum class SProp { NONE, PICKAXE, BLOCK, TORCH, FLAG, DIAMOND, SWORD }
 
 /** رموز تظهر فوق الرأس بدل الكلام. */
 enum class SEmote { NONE, HEART, EXCL, QUEST, STAR, NOTE, SWEAT, ANGER, BULB, ZZZ, SPARK, CHECK }
@@ -63,7 +63,7 @@ class SPose {
 class StickRenderer(density: Float) {
     val unit = 1.5f * density
     val winW = (96f * density).toInt()
-    val winH = (128f * density).toInt()
+    val winH = (140f * density).toInt()
     val groundY = winH - 15f * density
     val cx = winW / 2f
 
@@ -272,6 +272,16 @@ class StickRenderer(density: Float) {
                 c.drawPath(path, paint)
                 paint.color = Color.parseColor("#B2EBF2"); c.drawCircle(-1.2f, 3f, 1f, paint)
                 paint.style = Paint.Style.STROKE
+            }
+            SProp.SWORD -> {
+                paint.color = Color.parseColor("#5D4037"); paint.strokeWidth = 2.6f
+                c.drawLine(0f, -3.5f, 0f, 3f, paint)
+                paint.color = Color.parseColor("#37474F"); paint.strokeWidth = 2.2f
+                c.drawLine(-3.6f, 3.4f, 3.6f, 3.4f, paint)
+                paint.color = Color.parseColor("#00ACC1"); paint.strokeWidth = 3.8f
+                c.drawLine(0f, 4.2f, 0f, 21f, paint)
+                paint.color = Color.parseColor("#E0F7FA"); paint.strokeWidth = 1.5f
+                c.drawLine(0f, 4.6f, 0f, 20f, paint)
             }
             SProp.NONE -> Unit
         }

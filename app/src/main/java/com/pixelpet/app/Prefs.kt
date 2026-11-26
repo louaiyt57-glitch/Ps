@@ -17,6 +17,7 @@ object Prefs {
     private const val K_HAIRSTYLE = "hairstyle"
     private const val K_QUALITY = "quality"
     private const val K_STICK_Y = "stick_ground_y"
+    private const val K_STICK_FIGHTS = "stick_fights"
 
     const val Q_128 = 128
     const val Q_256 = 256
@@ -86,4 +87,8 @@ object Prefs {
     /** أرضية مجموعة العيدان (y بالبكسل)، -1 = غير محفوظة. */
     fun stickGroundY(c: Context): Int = sp(c).getInt(K_STICK_Y, -1)
     fun setStickGroundY(c: Context, v: Int) = sp(c).edit().putInt(K_STICK_Y, v).apply()
+
+    /** مشاهد القتال في وضع العيدان. */
+    fun stickFights(c: Context): Boolean = sp(c).getBoolean(K_STICK_FIGHTS, true)
+    fun setStickFights(c: Context, v: Boolean) = sp(c).edit().putBoolean(K_STICK_FIGHTS, v).apply()
 }

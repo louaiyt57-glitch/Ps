@@ -127,6 +127,16 @@
                 android:textColor="@color/text_sub"
                 android:textSize="13sp" />
 
+            <Switch
+                android:id="@+id/swFights"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:minHeight="48dp"
+                android:text="@string/stick_fights"
+                android:textColor="@color/text_main"
+                android:textSize="16sp" />
+
             <TextView
                 android:id="@+id/tvStickStatus"
                 android:layout_width="match_parent"
