@@ -70,7 +70,8 @@ class StickSolveTest {
     @Test
     fun renderPreviewsForNewAnims() {
         val newAnims = listOf(SAnim.PROWL, SAnim.TENSE, SAnim.BACKFLIP, SAnim.DODGE, SAnim.COMBO,
-            SAnim.SLIDE, SAnim.HANDSTAND, SAnim.MEDITATE, SAnim.PAT, SAnim.RISE)
+            SAnim.SLIDE, SAnim.HANDSTAND, SAnim.MEDITATE, SAnim.PAT, SAnim.RISE,
+            SAnim.CROUCH, SAnim.VAULT, SAnim.TUG, SAnim.CATCH, SAnim.STRUT)
         val dir = File("build/stick-previews").apply { mkdirs() }
         newAnims.forEach { a ->
             val frames = 8

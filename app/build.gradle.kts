@@ -31,6 +31,11 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+
+    testOptions {
+        // محاكاة المخرج على JVM: دوال ألوان أندرويد تُرجَع قيماً افتراضية بدل رمي استثناء
+        unitTests.isReturnDefaultValues = true
+    }
 }
 
 dependencies {
