@@ -77,20 +77,20 @@ class StickRenderer(density: Float) {
     val cx = winW / 2f
 
     private companion object {
-        const val TORSO = 16f
-        const val NECK = 1.2f
-        const val HEAD_R = 6.6f
-        const val ARM1 = 11f
-        const val ARM2 = 11f
-        const val LEG1 = 14f
-        const val LEG2 = 14.5f
+        const val TORSO = StickSolve.TORSO
+        const val NECK = StickSolve.NECK
+        const val HEAD_R = StickSolve.HEAD_R
+        const val ARM1 = StickSolve.ARM1
+        const val ARM2 = StickSolve.ARM2
+        const val LEG1 = StickSolve.LEG1
+        const val LEG2 = StickSolve.LEG2
         const val LIMB_W = 4.3f
         const val TORSO_W = 4.8f
 
-        const val HIP = 0; const val NECKP = 1; const val SH = 2; const val HEAD = 3
-        const val ELB_N = 4; const val HND_N = 5; const val ELB_F = 6; const val HND_F = 7
-        const val KNE_N = 8; const val FOT_N = 9; const val KNE_F = 10; const val FOT_F = 11
-        const val N = 12
+        const val HIP = StickSolve.HIP; const val NECKP = StickSolve.NECKP; const val SH = StickSolve.SH; const val HEAD = StickSolve.HEAD
+        const val ELB_N = StickSolve.ELB_N; const val HND_N = StickSolve.HND_N; const val ELB_F = StickSolve.ELB_F; const val HND_F = StickSolve.HND_F
+        const val KNE_N = StickSolve.KNE_N; const val FOT_N = StickSolve.FOT_N; const val KNE_F = StickSolve.KNE_F; const val FOT_F = StickSolve.FOT_F
+        const val N = StickSolve.N
     }
 
     private val px = FloatArray(N)
@@ -112,55 +112,11 @@ class StickRenderer(density: Float) {
     var headScreenX = 0f; private set
     var headScreenY = 0f; private set
 
-    // ───── الحل الأمامي للمفاصل ─────
+    // ───── الحل الأمامي للمفاصل (مفوَّض إلى StickSolve النقي) ─────
+    private val solved = FloatArray(StickSolve.N * 2)
     private fun solve(p: SPose) {
-        val r = 0.0174533f
-        val l = p.lean * r
-        val tx = sin(l); val ty = -cos(l)
-        px[HIP] = 0f; py[HIP] = 0f
-        px[NECKP] = tx * TORSO; py[NECKP] = ty * TORSO
-        px[SH] = tx * (TORSO - 0.5f); py[SH] = ty * (TORSO - 0.5f)   // الذراعان تتصلان عند أسفل الرقبة
-        val hd = (p.lean + p.head) * r
-        px[HEAD] = px[NECKP] + sin(hd) * (NECK + HEAD_R)
-        py[HEAD] = py[NECKP] - cos(hd) * (NECK + HEAD_R)
-
-        val m = if (p.front) -1f else 1f           // الأطراف البعيدة تنعكس في المنظر الأمامي
-        arm(ELB_N, HND_N, p.nSa, p.nEb, 1f, r)
-        arm(ELB_F, HND_F, p.fSa, p.fEb, m, r)
-        leg(KNE_N, FOT_N, p.nHa, p.nKb, 1f, r)
-        leg(KNE_F, FOT_F, p.fHa, p.fKb, m, r)
-
-        // دوران الجسم حول الورك
-        val rr = p.rot * r
-        val cr = cos(rr); val sr = sin(rr)
-        for (i in 0 until N) {
-            val x = px[i]; val y = py[i]
-            px[i] = x * cr - y * sr
-            py[i] = x * sr + y * cr
-        }
-        // ملامسة الأرض: أخفض نقطة تلامس y=0
-        var maxY = -1000f
-        for (i in 0 until N) {
-            val e = if (i == HEAD) HEAD_R else 2.2f
-            if (i != NECKP && i != SH) maxY = max(maxY, py[i] + e)
-        }
-        val shift = -maxY - p.lift
-        for (i in 0 until N) { py[i] += shift; px[i] += p.dx }
-    }
-
-    private fun arm(e: Int, h: Int, sa: Float, eb: Float, sign: Float, r: Float) {
-        val a = sa * sign * r
-        val b = (sa + eb) * sign * r
-        px[e] = px[SH] + sin(a) * ARM1; py[e] = py[SH] + cos(a) * ARM1
-        px[h] = px[e] + sin(b) * ARM2; py[h] = py[e] + cos(b) * ARM2
-    }
-
-    private fun leg(k: Int, f: Int, ha: Float, kb: Float, sign: Float, r: Float) {
-        val kbc = kb.coerceIn(-4f, 82f)          // قاعدة: الساق لا تنثني بشكل مبالغ فيه
-        val a = ha * sign * r
-        val b = (ha - kbc) * sign * r
-        px[k] = px[HIP] + sin(a) * LEG1; py[k] = py[HIP] + cos(a) * LEG1
-        px[f] = px[k] + sin(b) * LEG2; py[f] = py[k] + cos(b) * LEG2
+        StickSolve.solve(p, solved)
+        for (i in 0 until N) { px[i] = solved[2 * i]; py[i] = solved[2 * i + 1] }
     }
 
     private fun seg(c: Canvas, a: Int, b: Int, col: Int, w: Float) {

@@ -36,6 +36,10 @@ class StickGroupService : Service(), StickView.Listener {
         var running = false
             private set
 
+        /** إعدادات حيّة يقرؤها الإطار كل مرة، فتصل تبديلات الشاشة إلى الخدمة العاملة فوراً. */
+        @Volatile var liveFights = true
+        @Volatile var liveAuto = true
+
         fun start(c: Context) {
             c.startForegroundService(Intent(c, StickGroupService::class.java))
         }
@@ -79,6 +83,8 @@ class StickGroupService : Service(), StickView.Listener {
         dir = StickDirector(density * 1.2f, screenW)
         dir.auto = Prefs.autoMove(this)
         dir.fights = Prefs.stickFights(this)
+        liveAuto = dir.auto
+        liveFights = dir.fights
 
         val sy = Prefs.stickGroundY(this)
         baseY = if (sy >= 0) sy.toFloat() else screenH * 0.82f
@@ -108,17 +114,7 @@ class StickGroupService : Service(), StickView.Listener {
         }
 
         // نافذة المؤثرات فوق الجميع (لا تلتقط اللمس)
-        val fv = FxView(this, dir.fx, screenW, (310f * density).toInt(), 272f * density)
-        fxParams = WindowManager.LayoutParams(
-            fv.w, fv.h,
-            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
-                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
-            PixelFormat.TRANSLUCENT
-        ).apply { gravity = Gravity.TOP or Gravity.START; preferredRefreshRate = 120f; x = 0; y = (baseY - fv.groundY).roundToInt() }
-        try { wm.addView(fv, fxParams); fxView = fv } catch (e: Exception) { /* بدون مؤثرات */ }
+        buildFx()
 
         val f = IntentFilter().apply { addAction(Intent.ACTION_SCREEN_OFF); addAction(Intent.ACTION_SCREEN_ON) }
         if (Build.VERSION.SDK_INT >= 33) registerReceiver(screenReceiver, f, Context.RECEIVER_NOT_EXPORTED)
@@ -137,7 +133,29 @@ class StickGroupService : Service(), StickView.Listener {
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         if (views.isEmpty()) return
-        readScreen(); dir.screenW = screenW; dir.layoutInitial(); clampBase()
+        readScreen()
+        dir.screenW = screenW
+        clampBase()
+        // المشهد القديم بُني على إحداثيات الشاشة السابقة: ألغِه وأعد التوزيع
+        dir.relayout()
+        buildFx()   // عرض نافذة المؤثرات كان مقاس الشاشة القديمة
+    }
+
+    /** ينشئ نافذة المؤثرات من جديد بمقاس الشاشة الحالي (بعد الدوران مثلاً). */
+    private fun buildFx() {
+        fxView?.let { try { wm.removeView(it) } catch (_: Exception) {} }
+        fxView = null
+        val fv = FxView(this, dir.fx, screenW, (310f * density).toInt(), 272f * density)
+        fxParams = WindowManager.LayoutParams(
+            fv.w, fv.h,
+            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
+                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+            PixelFormat.TRANSLUCENT
+        ).apply { gravity = Gravity.TOP or Gravity.START; preferredRefreshRate = 120f; x = 0; y = (baseY - fv.groundY).roundToInt() }
+        try { wm.addView(fv, fxParams); fxView = fv } catch (e: Exception) { /* بدون مؤثرات */ }
     }
 
     override fun onDestroy() {
@@ -175,6 +193,8 @@ class StickGroupService : Service(), StickView.Listener {
             if (!looping) return
             val dt = if (lastFrame == 0L) 0.033f else ((t - lastFrame) / 1e9f).coerceIn(0f, 0.1f)
             lastFrame = t
+            dir.auto = liveAuto
+            dir.fights = liveFights
             dir.update(dt)
             // اهتزاز الشاشة عند الضربات القوية
             val sh = dir.shake

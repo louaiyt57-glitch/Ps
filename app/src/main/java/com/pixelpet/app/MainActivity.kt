@@ -60,7 +60,7 @@ class MainActivity : Activity() {
         tvStick = findViewById(R.id.tvStickStatus)
         swFights = findViewById(R.id.swFights)
         swFights.isChecked = Prefs.stickFights(this)
-        swFights.setOnCheckedChangeListener { _, on -> Prefs.setStickFights(this, on) }
+        swFights.setOnCheckedChangeListener { _, on -> Prefs.setStickFights(this, on); StickGroupService.liveFights = on }
         btnStickStart = findViewById(R.id.btnStickStart)
         btnStickStop = findViewById(R.id.btnStickStop)
         swAuto = findViewById(R.id.swAuto)
@@ -110,7 +110,7 @@ class MainActivity : Activity() {
         }
 
         swAuto.isChecked = Prefs.autoMove(this)
-        swAuto.setOnCheckedChangeListener { _, checked -> Prefs.setAutoMove(this, checked) }
+        swAuto.setOnCheckedChangeListener { _, checked -> Prefs.setAutoMove(this, checked); StickGroupService.liveAuto = checked }
 
         swSound.isChecked = Prefs.tapSound(this)
         swSound.setOnCheckedChangeListener { _, checked -> Prefs.setTapSound(this, checked) }

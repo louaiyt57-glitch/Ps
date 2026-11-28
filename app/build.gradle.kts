@@ -31,6 +31,15 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+
+    testOptions {
+        // محاكاة المخرج على JVM: دوال ألوان أندرويد تُرجَع قيماً افتراضية بدل رمي استثناء
+        unitTests.isReturnDefaultValues = true
+    }
+}
+
+dependencies {
+    testImplementation("junit:junit:4.13.2")
 }
 
 // لا توجد اعتمادات خارجية عمداً: التطبيق يعتمد على إطار أندرويد فقط ليبقى خفيفاً وسريع البناء.

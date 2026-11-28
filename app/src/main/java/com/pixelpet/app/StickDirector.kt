@@ -26,6 +26,8 @@ class Step(
 }
 
 class StickActor(val id: Int, val color: SColor) {
+    /** طباع الشخصية الثابت: يختار إيماءاته وأدواره في المشاهد. */
+    val persona = SPersona.fromId(id)
     var x = 0f                  // مركز الأرض أفقياً (بكسل)
     var facing = 1
     var anim = SAnim.IDLE
@@ -188,6 +190,8 @@ class StickDirector(val density: Float, var screenW: Int) {
     var auto = true
 
     private val sp get() = 46f * density           // التباعد المريح بين الشخصيات
+    private val SCENE_COUNT = 22                   // 0..21: كل المشاهد بما فيها القتال
+    private val SCENE_SOFT = 19                    // 0..18: بلا القتال (12..14 تُستثنى)
     private val cx get() = screenW / 2f
     private fun lo() = screenW * 0.1f
     private fun hi() = screenW * 0.9f
@@ -198,6 +202,13 @@ class StickDirector(val density: Float, var screenW: Int) {
     fun layoutInitial() {
         val span = hi() - lo()
         actors.forEachIndexed { i, a -> a.x = lo() + span * (i + 0.5f) / 5f; a.facing = if (i % 2 == 0) 1 else -1 }
+    }
+
+    /** تغيّر مقاس الشاشة (دوران): ألغِ المشهد الجاري وأعد التوزيع قبل أن يقود عرضاً قديماً. */
+    fun relayout() {
+        reset()
+        gap = 1.2f
+        layoutInitial()
     }
 
     fun arrive(name: String) { sync[name] = (sync[name] ?: 0) + 1 }
@@ -241,7 +252,8 @@ class StickDirector(val density: Float, var screenW: Int) {
         reset()
         gap = Random.nextFloat() * 2f + 1.5f
         var k: Int
-        do { k = Random.nextInt(if (fights) 15 else 12) } while (k == lastScene)
+        do { k = Random.nextInt(if (fights) SCENE_COUNT else SCENE_SOFT) }
+        while (k == lastScene || (!fights && k in 12..14))
         lastScene = k
         playScene(k)
     }
@@ -260,8 +272,16 @@ class StickDirector(val density: Float, var screenW: Int) {
             8 -> sceneScare(sh)
             9 -> sceneBow(sh)
             10 -> sceneIdea(sh)
+            11 -> sceneConga(sh)
             12, 13 -> sceneDuel(sh)
             14 -> sceneBossRush(sh)
+            15 -> sceneTraining(sh)
+            16 -> sceneFlipShow(sh)
+            17 -> sceneCalm(sh)
+            18 -> sceneTug(sh)
+            19 -> sceneLeapfrog(sh)
+            20 -> sceneRescue(sh)
+            21 -> sceneStrut(sh)
             else -> sceneConga(sh)
         }
     }
@@ -637,20 +657,211 @@ class StickDirector(val density: Float, var screenW: Int) {
         }
     }
 
+    // ───── مشاهد سينمائية جديدة: إيقاع محسوب (ترقّب → ضربة → متابعة) بلا رموز ولا كلام ─────
+
+    /** تدريب: المدرب الشجاع يدرّب الخجول على ضربة مركّبة، والباقي يسخّن حسب طباعه. */
+    private fun sceneTraining(sh: List<StickActor>) {
+        val coach = sh.firstOrNull { it.persona == SPersona.BRAVE } ?: sh[0]
+        val pupil = sh.firstOrNull { it !== coach && it.persona == SPersona.SHY } ?: sh.first { it !== coach }
+        val others = sh.filter { it !== coach && it !== pupil }
+        val cxL = cx - 34f * density; val cxR = cx + 34f * density
+        coach.go(cxL); pupil.go(cxR); coach.face(cxR); pupil.face(cxL)
+        others.forEach { it.go(if (it.x < cx) lo() else hi()); it.face(cx) }
+        coach.sync("tr", 5); pupil.sync("tr", 5); others.forEach { it.sync("tr", 5) }
+        // التسخين حسب الطباع
+        others.forEach { o ->
+            when (o.persona) {
+                SPersona.JOVIAL -> o.play(SAnim.HANDSTAND, 2.2f)
+                SPersona.COOL -> o.play(SAnim.MEDITATE, 4f)
+                else -> o.play(SAnim.SHRUG, 2.4f)
+            }
+            o.play(SAnim.LOOKAROUND, 1.6f)
+        }
+        // ترقّب المدرب ثم العرض
+        coach.play(SAnim.PROWL, 1.8f)
+        coach.play(SAnim.WINDUP, 0.3f)
+        coach.play(SAnim.COMBO, 0.5f)
+        coach.call { fx.impact(pupil.x, chest() + 8f * density, 0.7f, 0.8f, gold) }
+        pupil.play(SAnim.FSTANCE, 2.4f)
+        // مزامنة ثنائية: لا يسبق أحدهما الآخر في التمرين
+        coach.sync("d1", 2); pupil.sync("d1", 2)
+        pupil.play(SAnim.DODGE, 0.28f)
+        pupil.play(SAnim.BLOCK, 0.9f)
+        coach.play(SAnim.BLOCK, 1f)
+        coach.sync("d2", 2); pupil.sync("d2", 2)
+        // الدور: الخجول يبادر
+        pupil.play(SAnim.PROWL, 1.5f)
+        pupil.play(SAnim.COMBO, 0.5f)
+        pupil.call { fx.impact(coach.x, chest() + 8f * density, 0.7f, 0.8f, cyan) }
+        pupil.sync("r", 2); coach.sync("r", 2)
+        coach.play(SAnim.NOD, 1.4f)
+        pupil.play(SAnim.VICTORY, 2.2f)
+        others.forEach { it.play(SAnim.CHEER, 2f) }
+        others.forEach { it.play(SAnim.CLAP, 1.6f) }
+    }
+
+    /** عرض بهلواني: المرح يقود عرض شقلبات، والعابس يتشنج ثم يضحك. */
+    private fun sceneFlipShow(sh: List<StickActor>) {
+        val star = sh.firstOrNull { it.persona == SPersona.JOVIAL } ?: sh[0]
+        val grump = sh.firstOrNull { it.persona == SPersona.GRUMPY && it !== star }
+        val crowd = sh.filter { it !== star }
+        star.go(cx); crowd.forEach { it.go(if (it.x < cx) lo() else hi()); it.face(cx) }
+        star.sync("fs", 5); crowd.forEach { it.sync("fs", 5) }
+        star.play(SAnim.BOW, 1.2f)
+        crowd.forEach { it.play(SAnim.CLAP, 1.2f) }
+        star.play(SAnim.BACKFLIP, 0.62f)
+        star.call { fx.impact(cx, chest() - 20f * density, 0f, 0.9f, gold); hit(2f, 0.05f) }
+        crowd.forEach { it.play(SAnim.CHEER, 1.6f) }
+        star.play(SAnim.HANDSTAND, 2f)
+        star.play(SAnim.SLIDE, 0.5f)
+        star.play(SAnim.RISE, 0.9f)
+        star.play(SAnim.BOW, 1.2f)
+        crowd.forEach { it.play(SAnim.CLAP, 1.8f) }
+        grump?.let { g ->
+            g.play(SAnim.TENSE, 1.4f)
+            g.play(SAnim.LAUGH, 1.8f)
+        }
+        crowd.forEach { it.play(SAnim.CHEER, 1.6f) }
+    }
+
+    /** هدوء جماعي: تأمل يقطعه العابس، جاره يربّت عليه فيعود الهدوء ثم تصفيق هادئ. */
+    private fun sceneCalm(sh: List<StickActor>) {
+        val grump = sh.firstOrNull { it.persona == SPersona.GRUMPY } ?: sh.last()
+        val neighbor = sh.filter { it !== grump }.minByOrNull { abs(it.x - grump.x) } ?: sh.first()
+        sh.forEach { a -> a.face(cx) }
+        sh.forEach { it.sync("cm", 5) }
+        sh.forEach { if (it !== grump) it.play(SAnim.MEDITATE, 4.5f) }
+        grump.play(SAnim.MEDITATE, 1.2f)
+        grump.play(SAnim.TENSE, 1.6f)
+        grump.sync("p", 2)
+        neighbor.go(grump.x + (if (neighbor.x < grump.x) -1 else 1) * 26f * density)
+        neighbor.face(grump.x)
+        neighbor.play(SAnim.PAT, 1.8f)
+        neighbor.sync("p", 2)
+        grump.play(SAnim.MEDITATE, 3.5f)
+        sh.forEach { it.play(SAnim.CHEER, 1.8f) }
+    }
+
+    // ───── مشاهد جماعية جديدة: قواعد جماعية تُقرأ من الجسد وحده ─────
+
+    /** شدّ الحبل: فريقان يتشابكان والثالث حكم، ثم يسقط الخاسر ويفخر الفائز. */
+    private fun sceneTug(sh: List<StickActor>) {
+        val a1 = sh[0]; val a2 = sh[1]; val b1 = sh[2]; val b2 = sh[3]; val judge = sh[4]
+        val g = 56f * density
+        a1.go(cx - g - 14f * density); a2.go(cx - g - 44f * density)
+        b1.go(cx + g + 14f * density); b2.go(cx + g + 44f * density)
+        listOf(a1, a2, b1, b2).forEach { it.face(cx) }
+        judge.go(cx); judge.face(cx + 1f)
+        judge.play(SAnim.STOP, 0.9f)
+        judge.sync("tg", 5)
+        listOf(a1, a2, b1, b2).forEach {
+            it.sync("tg", 5)
+            it.play(SAnim.TUG, 5.4f)
+        }
+        judge.play(SAnim.CLAP, 5.4f)
+        b1.call { fx.groundWave(b1.x + 10f * density, 26f * density, orange) }
+        b2.call { fx.groundWave(b2.x + 10f * density, 26f * density, orange) }
+        b1.play(SAnim.FLYBACK, 0.8f); b2.play(SAnim.FLYBACK, 0.8f)
+        b1.play(SAnim.KOED, 2.2f, SEmote.NONE); b2.play(SAnim.KOED, 2.2f, SEmote.NONE)
+        a1.play(SAnim.STRUT, 2.6f); a2.play(SAnim.STRUT, 2.6f)
+        a1.play(SAnim.CHEER, 1.8f); a2.play(SAnim.CHEER, 1.8f)
+        judge.play(SAnim.POINT, 1.4f)
+        judge.play(SAnim.CHEER, 1.8f)
+    }
+
+    /** قفز فوق الظهور: واحد على أربع والباقي يقفزون فوقه من الجهتين. */
+    private fun sceneLeapfrog(sh: List<StickActor>) {
+        val base = sh[0]
+        val jumpers = sh.drop(1)
+        base.go(cx); base.face(cx + 1f)
+        base.play(SAnim.CROUCH, 4.6f)
+        jumpers.forEachIndexed { i, a ->
+            val side = if (i % 2 == 0) -1f else 1f
+            a.go(cx + side * (26f + 9f * i) * density)
+            a.sync("lf", jumpers.size)
+            a.wait(0.55f * i)
+            a.face(a.x - side * 60f * density)   // يواجه اتجاه العبور
+            a.dash(SAnim.VAULT, 0.62f, cx - side * 48f * density)
+            a.call { fx.groundWave(a.x, 20f * density, cyan) }
+            a.play(SAnim.CHEER, 1.5f)
+            a.face(cx)
+        }
+        base.play(SAnim.RISE, 0.9f)
+        base.play(SAnim.CLAP, 1.6f)
+        base.play(SAnim.CHEER, 1.6f)
+    }
+
+    /** نجدة: أحدهم ينهار، اثنان يهرعان ويلتقطانه، ثم يقف الجميع ويحتفلون. */
+    private fun sceneRescue(sh: List<StickActor>) {
+        val fallen = sh[0]
+        val lifters = sh.drop(1).take(2)
+        val crowd = sh.drop(3)
+        fallen.go(cx)
+        lifters[0].go(cx - 28f * density); lifters[1].go(cx + 28f * density)
+        lifters.forEach { it.face(cx) }
+        crowd.forEach { it.go(if (it.x < cx) lo() else hi()); it.face(cx) }
+        fallen.play(SAnim.TIRED, 0.8f)
+        fallen.play(SAnim.FALL, 0.55f)
+        fallen.call { fx.groundWave(cx, 30f * density, gold) }
+        fallen.play(SAnim.KOED, 2.0f)
+        fallen.play(SAnim.GETUP, 0.6f)
+        fallen.play(SAnim.RISE, 0.9f)
+        fallen.play(SAnim.CHEER, 1.8f)
+        lifters.forEach {
+            it.wait(0.9f)
+            it.play(SAnim.CATCH, 0.9f)
+            it.play(SAnim.PUSH, 1.5f)
+            it.play(SAnim.HUG, 1.2f)
+            it.play(SAnim.CHEER, 1.6f)
+        }
+        crowd.forEach {
+            it.play(SAnim.SCARED, 0.9f)
+            it.play(SAnim.CLAP, 2.4f)
+            it.play(SAnim.CHEER, 1.6f)
+        }
+    }
+
+    /** مشية الفخر: الفائز يعبر المشهد متبختراً ثم ينحني والبقية تصفق. */
+    private fun sceneStrut(sh: List<StickActor>) {
+        val star = sh[0]
+        val crowd = sh.drop(1)
+        star.go(lo()); star.face(hi())
+        crowd.forEachIndexed { i, a ->
+            a.go(cx + (10f + i * 30f) * density); a.face(lo())
+        }
+        star.sync("sr", 5)
+        crowd.forEach { it.sync("sr", 5); it.play(SAnim.CLAP, 3.4f) }
+        star.dash(SAnim.STRUT, 3.4f, cx - 58f * density)
+        star.play(SAnim.FLEX, 1.6f)
+        star.play(SAnim.BOW, 1.2f)
+        crowd.forEach { it.play(SAnim.CHEER, 1.8f) }
+        crowd.forEach { it.play(SAnim.CLAP, 1.2f) }
+    }
+
     // ───── تفاعل المستخدم ─────
     private val gestures = listOf(
         SAnim.WAVE to SEmote.NONE, SAnim.THUMBS to SEmote.CHECK, SAnim.HEART to SEmote.HEART,
         SAnim.PEACE to SEmote.SPARK, SAnim.KISS to SEmote.HEART, SAnim.SALUTE to SEmote.NONE,
         SAnim.FLEX to SEmote.STAR, SAnim.CLAP to SEmote.STAR, SAnim.CHEER to SEmote.STAR,
         SAnim.DANCE to SEmote.NOTE, SAnim.BECKON to SEmote.EXCL, SAnim.SHRUG to SEmote.QUEST,
-        SAnim.BOW to SEmote.NONE, SAnim.LAUGH to SEmote.NONE
+        SAnim.BOW to SEmote.NONE, SAnim.LAUGH to SEmote.NONE,
+        SAnim.TUG to SEmote.NONE, SAnim.STRUT to SEmote.NONE, SAnim.CATCH to SEmote.NONE
     )
 
-    /** نقرة على شخصية: تحيّيك بإشارة موجّهة إليك، وجار يلتفت إليها. */
+    /** إيماءات كل طباع: هوية الشخصية تظهر حتى في نقرة عابرة. */
+    private val personaGestures: Map<SPersona, List<Pair<SAnim, SEmote>>> = mapOf(
+        SPersona.BRAVE to listOf(SAnim.FLEX to SEmote.STAR, SAnim.SALUTE to SEmote.NONE, SAnim.BECKON to SEmote.EXCL, SAnim.VICTORY to SEmote.STAR),
+        SPersona.SHY to listOf(SAnim.WAVE to SEmote.NONE, SAnim.BOW to SEmote.NONE, SAnim.POINT to SEmote.QUEST, SAnim.TIRED to SEmote.NONE),
+        SPersona.JOVIAL to listOf(SAnim.DANCE to SEmote.NOTE, SAnim.LAUGH to SEmote.NONE, SAnim.CHEER to SEmote.STAR, SAnim.KISS to SEmote.HEART),
+        SPersona.COOL to listOf(SAnim.PEACE to SEmote.SPARK, SAnim.SALUTE to SEmote.NONE, SAnim.THUMBS to SEmote.CHECK, SAnim.BOW to SEmote.NONE),
+        SPersona.GRUMPY to listOf(SAnim.SHRUG to SEmote.QUEST, SAnim.FACEPALM to SEmote.NONE, SAnim.TENSE to SEmote.NONE, SAnim.STOP to SEmote.EXCL)
+    )
+
+    /** نقرة على شخصية: تحيّيك بإشارة موجّهة إليك بحسب طباعه، وجار يلتفت إليها. */
     fun onTap(i: Int) {
         reset(); gap = 2.5f
         val a = actors[i]
-        val (g, e) = gestures.random()
+        val (g, e) = (personaGestures[a.persona] ?: gestures).random()
         a.play(g, 2.4f, e)
         val nb = actors.filter { it !== a }.minByOrNull { abs(it.x - a.x) }!!
         nb.face(a.x); nb.wait(0.3f); nb.play(if (Random.nextBoolean()) SAnim.CLAP else SAnim.POINT, 1.8f, SEmote.EXCL)
